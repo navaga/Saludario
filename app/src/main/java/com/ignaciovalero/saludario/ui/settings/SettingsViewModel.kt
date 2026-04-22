@@ -16,12 +16,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val languageCode: String = AppLanguageManager.DEFAULT_LANGUAGE_CODE
+    val languageCode: String = AppLanguageManager.DEFAULT_LANGUAGE_CODE,
+    val dismissedInsightsCount: Int = 0,
+    val darkModeEnabled: Boolean? = null
 )
 
 class SettingsViewModel(
@@ -31,8 +34,17 @@ class SettingsViewModel(
 
     private val _events = MutableSharedFlow<Int>()
     val events: SharedFlow<Int> = _events.asSharedFlow()
-    val uiState: StateFlow<SettingsUiState> = userPreferencesDataSource.preferredLanguageCode
-        .map { SettingsUiState(languageCode = AppLanguageManager.normalizeLanguageCode(it)) }
+    val uiState: StateFlow<SettingsUiState> = combine(
+        userPreferencesDataSource.preferredLanguageCode,
+        userPreferencesDataSource.dismissedInsightKeys(),
+        userPreferencesDataSource.darkModeEnabled
+    ) { languageCode, dismissedInsights, darkModeEnabled ->
+        SettingsUiState(
+            languageCode = AppLanguageManager.normalizeLanguageCode(languageCode),
+            dismissedInsightsCount = dismissedInsights.size,
+            darkModeEnabled = darkModeEnabled
+        )
+    }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
@@ -47,10 +59,23 @@ class SettingsViewModel(
         }
     }
 
+    fun setDarkModeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesDataSource.setDarkModeEnabled(enabled)
+        }
+    }
+
     fun resetTutorials() {
         viewModelScope.launch {
             tutorialManager.resetAllTutorials()
             _events.emit(R.string.settings_reset_done)
+        }
+    }
+
+    fun restoreDismissedInsights() {
+        viewModelScope.launch {
+            userPreferencesDataSource.resetDismissedInsights()
+            _events.emit(R.string.settings_insights_restore_done)
         }
     }
 

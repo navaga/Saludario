@@ -31,10 +31,38 @@ fun Context.localizedMedicationDosage(dosage: Double, unitKey: String): String {
 }
 
 fun Context.localizedLocalTime(time: LocalTime): String {
-    return time.format(
-        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
-            .withLocale(currentLocale())
-    )
+    return runCatching {
+        time.format(
+            DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
+                .withLocale(currentLocale())
+        )
+    }.getOrElse {
+        time.toString()
+    }
+}
+
+fun Context.localizedDurationMinutes(totalMinutes: Long): String {
+    val safeMinutes = totalMinutes.coerceAtLeast(0L)
+    val hours = (safeMinutes / 60L).toInt()
+    val minutes = (safeMinutes % 60L).toInt()
+
+    return runCatching {
+        when {
+            hours == 0 -> resources.getQuantityString(R.plurals.duration_minutes, minutes, minutes)
+            minutes == 0 -> resources.getQuantityString(R.plurals.duration_hours, hours, hours)
+            else -> {
+                val hoursText = resources.getQuantityString(R.plurals.duration_hours, hours, hours)
+                val minutesText = resources.getQuantityString(R.plurals.duration_minutes, minutes, minutes)
+                getString(R.string.duration_hours_minutes, hoursText, minutesText)
+            }
+        }
+    }.getOrElse {
+        when {
+            hours == 0 -> "$minutes min"
+            minutes == 0 -> "$hours h"
+            else -> "$hours h $minutes min"
+        }
+    }
 }
 
 fun Context.localizedScheduledTime(rawDateTime: String): String {
@@ -55,6 +83,8 @@ private fun Context.formatMedicationAmount(value: Double): String {
 }
 
 private fun Context.currentLocale(): Locale {
-    val locales = resources.configuration.locales
-    return if (locales.isEmpty) Locale.getDefault() else locales[0]
+    return runCatching {
+        val locales = resources.configuration.locales
+        if (locales.isEmpty) Locale.getDefault() else locales[0]
+    }.getOrDefault(Locale.getDefault())
 }

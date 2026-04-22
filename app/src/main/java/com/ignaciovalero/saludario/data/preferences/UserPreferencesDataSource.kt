@@ -25,6 +25,10 @@ class UserPreferencesDataSource(
         prefs[PREFERRED_LANGUAGE_KEY] ?: DEFAULT_LANGUAGE
     }
 
+    val darkModeEnabled: Flow<Boolean?> = dataStore.data.map { prefs ->
+        prefs[DARK_MODE_ENABLED_KEY]
+    }
+
     suspend fun setSimpleMode(enabled: Boolean) {
         dataStore.edit { prefs ->
             prefs[SIMPLE_MODE_KEY] = enabled
@@ -43,6 +47,12 @@ class UserPreferencesDataSource(
         }
     }
 
+    suspend fun setDarkModeEnabled(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[DARK_MODE_ENABLED_KEY] = enabled
+        }
+    }
+
     fun isTutorialSeen(screenKey: String): Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[tutorialKey(screenKey)] ?: false
     }
@@ -50,6 +60,35 @@ class UserPreferencesDataSource(
     suspend fun setTutorialSeen(screenKey: String, seen: Boolean = true) {
         dataStore.edit { prefs ->
             prefs[tutorialKey(screenKey)] = seen
+        }
+    }
+
+    fun dismissedInsightKeys(): Flow<Set<String>> = dataStore.data.map { prefs ->
+        prefs.asMap().keys
+            .mapNotNull { key ->
+                key.name.takeIf { it.startsWith(DISMISSED_INSIGHT_KEY_PREFIX) }
+                    ?.removePrefix(DISMISSED_INSIGHT_KEY_PREFIX)
+            }
+            .toSet()
+    }
+
+    suspend fun setInsightDismissed(insightKey: String, dismissed: Boolean = true) {
+        dataStore.edit { prefs ->
+            prefs[dismissedInsightKey(insightKey)] = dismissed
+        }
+    }
+
+    suspend fun clearDismissedInsight(insightKey: String) {
+        dataStore.edit { prefs ->
+            prefs.remove(dismissedInsightKey(insightKey))
+        }
+    }
+
+    suspend fun resetDismissedInsights() {
+        dataStore.edit { prefs ->
+            val dismissedKeys = prefs.asMap().keys
+                .filter { it.name.startsWith(DISMISSED_INSIGHT_KEY_PREFIX) }
+            dismissedKeys.forEach { key -> prefs.remove(key) }
         }
     }
 
@@ -98,12 +137,16 @@ class UserPreferencesDataSource(
         val SIMPLE_MODE_KEY = booleanPreferencesKey("simple_mode")
         val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
         val PREFERRED_LANGUAGE_KEY = stringPreferencesKey("preferred_language")
+        val DARK_MODE_ENABLED_KEY = booleanPreferencesKey("dark_mode_enabled")
         const val DEFAULT_LANGUAGE = "es"
         const val TUTORIAL_KEY_PREFIX = "tutorial_seen_"
+        const val DISMISSED_INSIGHT_KEY_PREFIX = "dismissed_insight_"
         const val LOW_STOCK_NOTIFIED_PREFIX = "low_stock_notified_"
         const val LOW_STOCK_NOTIFIED_STATE_PREFIX = "low_stock_notified_state_"
 
         fun tutorialKey(screenKey: String) = booleanPreferencesKey("$TUTORIAL_KEY_PREFIX$screenKey")
+        fun dismissedInsightKey(insightKey: String) =
+            booleanPreferencesKey("$DISMISSED_INSIGHT_KEY_PREFIX$insightKey")
         fun lowStockNotifiedKey(medicationId: Long) =
             doublePreferencesKey("$LOW_STOCK_NOTIFIED_PREFIX$medicationId")
         fun lowStockNotifiedStateKey(medicationId: Long) =

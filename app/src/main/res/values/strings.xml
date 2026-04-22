@@ -12,13 +12,18 @@
     <string name="tutorial_add_message">Completa nombre, dosis y horario para guardar un nuevo medicamento y activar sus recordatorios.</string>
     <string name="tutorial_health_title">Registros de Salud</string>
     <string name="tutorial_health_message">Aquí eliges qué dato quieres registrar: tensión, glucosa, peso y más.</string>
-    <string name="tutorial_insights_title">Insights</string>
-    <string name="tutorial_insights_message">En Insights encontrarás patrones de adherencia para mejorar tus hábitos de toma.</string>
+    <string name="tutorial_insights_title">Análisis</string>
+    <string name="tutorial_insights_message">En Análisis verás patrones de adherencia para ayudarte a mejorar tus hábitos de toma.</string>
     <string name="tutorial_health_detail_title">Detalle de Salud</string>
     <string name="tutorial_health_detail_message">En esta vista puedes guardar nuevos valores, ver el histórico y revisar la evolución en la gráfica.</string>
     <string name="settings_title">Ajustes</string>
     <string name="settings_language_title">Idioma</string>
     <string name="settings_language_description">Elige el idioma de la aplicación. Se aplicará al momento en toda la app.</string>
+    <string name="settings_appearance_title">Apariencia</string>
+    <string name="settings_appearance_description">Activa o desactiva el modo oscuro para que la lectura sea más cómoda según el entorno.</string>
+    <string name="settings_dark_mode_title">Modo oscuro</string>
+    <string name="settings_dark_mode_enabled">Activado</string>
+    <string name="settings_dark_mode_disabled">Desactivado</string>
     <string name="settings_tutorials_title">Mini tutoriales</string>
     <string name="settings_tutorials_description">Si lo pulsas, volverán a mostrarse los tutoriales de todas las pantallas.</string>
     <string name="settings_reset_tutorials">Volver a mostrar tutoriales</string>
@@ -49,7 +54,7 @@
     <string name="nav_today">Hoy</string>
     <string name="nav_medications">Medicamentos</string>
     <string name="nav_add">Añadir</string>
-    <string name="nav_insights">Insights</string>
+    <string name="nav_insights">Análisis</string>
     <string name="nav_health">Salud</string>
     <string name="nav_settings">Ajustes</string>
     <string name="back_button_cd">Volver atrás</string>
@@ -127,11 +132,11 @@
     <string name="day_read_only_hint">Estás consultando otra fecha. Aquí solo puedes revisar las tomas.</string>
     <string name="day_status_good">Bueno</string>
     <string name="day_status_regular">Regular</string>
-    <string name="day_status_bad">Malo</string>
+    <string name="day_status_bad">Por mejorar</string>
     <string name="day_message_no_doses">No hay dosis programadas para esta fecha.</string>
     <string name="day_message_good">Muy bien: llevas un %1$d%% de adherencia hoy.</string>
     <string name="day_message_regular">Buen ritmo: %1$d%% de adherencia. Puedes mejorar un poco más.</string>
-    <string name="day_message_bad">Atención: adherencia del %1$d%%. Revisa las dosis pendientes.</string>
+    <string name="day_message_bad">Hoy vas por debajo de lo previsto: llevas un %1$d%% de adherencia. Revisa las dosis pendientes para ponerte al día.</string>
     <string name="today_taken_status_cd">La toma de %1$s de las %2$s ya está marcada como tomada.</string>
     <string name="today_mark_taken_for_cd">Marcar la toma de %1$s de las %2$s como tomada.</string>
 
@@ -257,23 +262,64 @@
     <string name="insight_missed_message">Has olvidado %1$s un %2$d%% de las veces (%3$d de %4$d dosis).</string>
     <string name="insight_delay_with_suggestion">Normalmente tomas %1$s a las %2$s en lugar de a las %3$s. Considera cambiar la hora programada.</string>
     <string name="insight_delay_generic">Intenta tomar %1$s a la hora programada para mantener su eficacia.</string>
-    <string name="insight_delay_message">Tomas %1$s con un retraso promedio de %2$d minutos.</string>
+    <string name="insight_delay_message">Tomas %1$s con un retraso promedio de %2$s.</string>
     <string name="insight_adherence_message">Excelente adherencia con %1$s: %2$d%% de dosis tomadas.</string>
+    <string name="insight_adherence_detail">%1$d de %2$d dosis tomadas.</string>
     <string name="insight_low_stock_critical_message">Te quedan muy pocas pastillas de %1$s</string>
     <string name="insight_low_stock_warning_message">Te quedan pocas pastillas de %1$s</string>
-    <string name="insight_low_stock_days_remaining">Te quedan pastillas para %1$d días aproximadamente.</string>
+    <string name="insight_low_stock_percentage_remaining">Queda aproximadamente el %1$d%% de la cantidad configurada.</string>
+    <string name="insight_low_stock_days_unknown">Aún no hay suficientes tomas registradas para estimar cuántos días quedan.</string>
     <string name="insight_low_stock_suggestion">Añade más unidades de %1$s para no quedarte sin medicación.</string>
+    <string name="duration_hours_minutes">%1$s y %2$s</string>
+
+    <plurals name="insight_low_stock_days_remaining">
+        <item quantity="one">Te queda medicación para %1$d día aproximadamente.</item>
+        <item quantity="other">Te queda medicación para %1$d días aproximadamente.</item>
+    </plurals>
+
+    <plurals name="duration_minutes">
+        <item quantity="one">%d minuto</item>
+        <item quantity="other">%d minutos</item>
+    </plurals>
+
+    <plurals name="duration_hours">
+        <item quantity="one">%d hora</item>
+        <item quantity="other">%d horas</item>
+    </plurals>
 
     <!-- Schedule format -->
     <!-- Insights Screen -->
     <string name="insights_title">Análisis de adherencia</string>
     <string name="insights_subtitle">Resumen automático de olvidos, retrasos y avisos de cantidad baja.</string>
     <string name="insights_empty">Aún no hay suficiente información para mostrar patrones. Sigue registrando tus tomas unos días más.</string>
+    <string name="insights_empty_filtered">No hay resultados para este filtro. Prueba con otro tipo de insight o limpia los filtros.</string>
     <string name="insights_loading_cd">Cargando análisis</string>
+    <string name="insights_error_title">No se pudo cargar el análisis</string>
+    <string name="insights_error_message">Ha ocurrido un problema al generar los avisos y resúmenes de adherencia. Inténtalo de nuevo.</string>
+    <string name="insights_retry">Reintentar</string>
+    <string name="insights_filter_label">Filtrar avisos</string>
+    <string name="insights_clear_filters">Limpiar filtros</string>
+    <string name="insights_filter_all">Todos</string>
+    <string name="insights_filter_missed">Olvidos</string>
+    <string name="insights_filter_delays">Retrasos</string>
+    <string name="insights_filter_stock">Cantidad</string>
+    <string name="insights_filter_positive">Positivos</string>
+    <string name="insight_action_seen">Ocultar aviso</string>
+    <string name="insight_action_review_schedule">Revisar horario</string>
     <string name="insight_type_critical">Crítico</string>
     <string name="insight_type_warning">Aviso</string>
     <string name="insight_type_info">Información</string>
     <string name="insight_type_success">Positivo</string>
+    <string name="settings_analysis_title">Análisis y avisos</string>
+    <string name="settings_analysis_description">Si ocultas un aviso desde Análisis, puedes volver a mostrarlo desde aquí.</string>
+    <string name="settings_restore_hidden_insights">Volver a mostrar avisos ocultos</string>
+    <string name="settings_insights_hidden_none">No hay avisos ocultos.</string>
+    <string name="settings_insights_restore_done">Avisos ocultos restaurados</string>
+
+    <plurals name="settings_insights_hidden_count">
+        <item quantity="one">Hay %1$d aviso oculto.</item>
+        <item quantity="other">Hay %1$d avisos ocultos.</item>
+    </plurals>
 
     <!-- Feedback messages -->
     <string name="msg_medication_deleted">Medicamento eliminado</string>

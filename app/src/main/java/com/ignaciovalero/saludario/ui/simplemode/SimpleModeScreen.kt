@@ -32,7 +32,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -49,9 +49,12 @@ import com.ignaciovalero.saludario.domain.scheduling.ScheduledDose
 import com.ignaciovalero.saludario.domain.scheduling.ScheduledDoseMedication
 import com.ignaciovalero.saludario.domain.scheduling.ScheduledDoseStatus
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
-import com.ignaciovalero.saludario.ui.theme.MedicationMissedContainer
-import com.ignaciovalero.saludario.ui.theme.MedicationPendingContainer
-import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainer
+import com.ignaciovalero.saludario.ui.theme.MedicationMissedContainerDark
+import com.ignaciovalero.saludario.ui.theme.MedicationMissedContainerLight
+import com.ignaciovalero.saludario.ui.theme.MedicationPendingContainerDark
+import com.ignaciovalero.saludario.ui.theme.MedicationPendingContainerLight
+import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainerDark
+import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainerLight
 import com.ignaciovalero.saludario.ui.theme.SaludarioTheme
 import com.ignaciovalero.saludario.ui.today.TodayUiState
 
@@ -78,7 +81,7 @@ fun SimpleModeScreen(
             title = {
                 Text(
                     text = stringResource(R.string.simple_mode_title),
-                    fontSize = 30.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -97,10 +100,7 @@ fun SimpleModeScreen(
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            colors = TopAppBarDefaults.topAppBarColors()
         )
 
         if (uiState.scheduledItems.isEmpty()) {
@@ -110,10 +110,10 @@ fun SimpleModeScreen(
             ) {
                 Text(
                     text = stringResource(R.string.simple_mode_empty),
-                    fontSize = 34.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
-                    lineHeight = 42.sp,
+                    lineHeight = 36.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -126,7 +126,7 @@ fun SimpleModeScreen(
                 item {
                     Text(
                         text = stringResource(R.string.simple_mode_pending_count, pending.size),
-                        fontSize = 24.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -145,7 +145,7 @@ fun SimpleModeScreen(
                     Spacer(modifier = Modifier.height(AppSpacing.xs + 2.dp))
                     Text(
                         text = stringResource(R.string.simple_mode_taken_summary, takenCount),
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -171,18 +171,34 @@ private fun SimpleMedicationCard(
     val haptic = LocalHapticFeedback.current
     val localizedTime = context.localizedLocalTime(item.scheduledAt.toLocalTime())
     val localizedDosage = context.localizedMedicationDosage(item.medication.dosage, item.medication.unit)
+    val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val pendingContainer = if (isDarkTheme) MedicationPendingContainerDark else MedicationPendingContainerLight
+    val takenContainer = if (isDarkTheme) MedicationTakenContainerDark else MedicationTakenContainerLight
+    val missedContainer = if (isDarkTheme) MedicationMissedContainerDark else MedicationMissedContainerLight
+    val confirmContainerColor = when (item.status) {
+        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
+    val confirmContentColor = when (item.status) {
+        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onError
+        else -> MaterialTheme.colorScheme.onPrimary
+    }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         colors = CardDefaults.cardColors(
             containerColor = when (item.status) {
-                ScheduledDoseStatus.TAKEN -> MedicationTakenContainer
-                ScheduledDoseStatus.MISSED -> MedicationMissedContainer
-                ScheduledDoseStatus.PENDING -> MedicationPendingContainer
+                ScheduledDoseStatus.TAKEN -> takenContainer
+                ScheduledDoseStatus.MISSED -> missedContainer
+                ScheduledDoseStatus.PENDING -> pendingContainer
             }
         ),
-        border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFF1A1A1A))
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.5.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = if (isDarkTheme) 0.75f else 0.45f)
+        )
     ) {
         Column(
             modifier = Modifier
@@ -196,9 +212,9 @@ private fun SimpleMedicationCard(
             ) {
                 Text(
                     text = localizedTime,
-                    fontSize = 34.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111111)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -206,16 +222,16 @@ private fun SimpleMedicationCard(
 
             Text(
                 text = item.medicationName,
-                fontSize = 30.sp,
+                fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF111111),
-                lineHeight = 36.sp
+                color = MaterialTheme.colorScheme.onSurface,
+                lineHeight = 32.sp
             )
 
             Text(
                 text = localizedDosage,
-                fontSize = 24.sp,
-                color = Color(0xFF2E2E2E)
+                fontSize = 18.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(AppSpacing.lg + 2.dp))
@@ -230,8 +246,8 @@ private fun SimpleMedicationCard(
                     .height(78.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0B6E4F),
-                    contentColor = Color.White
+                    containerColor = confirmContainerColor,
+                    contentColor = confirmContentColor
                 )
             ) {
                 Icon(
@@ -242,7 +258,7 @@ private fun SimpleMedicationCard(
                 Spacer(modifier = Modifier.size(12.dp))
                 Text(
                     text = stringResource(R.string.simple_mode_taken_button),
-                    fontSize = 26.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -263,7 +279,13 @@ private fun CompactTakenItem(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MedicationTakenContainer
+            containerColor = if (
+                MaterialTheme.colorScheme.surface.luminance() < 0.5f
+            ) {
+                MedicationTakenContainerDark
+            } else {
+                MedicationTakenContainerLight
+            }
         )
     ) {
         Row(

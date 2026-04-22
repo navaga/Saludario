@@ -265,25 +265,25 @@ class MedicationInsightsAnalyzerTest {
 
     @Test
     fun `good adherence detected at threshold`() {
-        // 9/10 = 90% at threshold
+        // 8/10 = 80% at threshold
         val logs = (1..10).map { day ->
-            val status = if (day <= 9) MedicationStatus.TAKEN else MedicationStatus.MISSED
+            val status = if (day <= 8) MedicationStatus.TAKEN else MedicationStatus.MISSED
             makeLog(1L, day, status)
         }
         val result = analyzer.analyze(listOf(baseMedication), logs)
         val adherence = result.find { it.type == InsightType.GOOD_ADHERENCE }
         assertNotNull(adherence)
         val details = adherence!!.details as InsightDetails.AdherenceInfo
-        assertEquals(9, details.takenCount)
+        assertEquals(8, details.takenCount)
         assertEquals(10, details.totalCount)
-        assertEquals(90, details.adherencePercentage)
+        assertEquals(80, details.adherencePercentage)
     }
 
     @Test
     fun `good adherence not detected below threshold`() {
-        // 8/10 = 80% below 90%
+        // 7/10 = 70% below 80%
         val logs = (1..10).map { day ->
-            val status = if (day <= 8) MedicationStatus.TAKEN else MedicationStatus.MISSED
+            val status = if (day <= 7) MedicationStatus.TAKEN else MedicationStatus.MISSED
             makeLog(1L, day, status)
         }
         val result = analyzer.analyze(listOf(baseMedication), logs)

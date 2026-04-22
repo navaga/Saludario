@@ -62,9 +62,9 @@ fun OnboardingScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                         MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.06f)
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
                     )
                 )
             )

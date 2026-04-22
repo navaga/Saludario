@@ -42,19 +42,42 @@ val TertiaryDark = Color(0xFFE3B4FF)
 val OnTertiaryDark = Color(0xFF472068)
 
 val BackgroundDark = Color(0xFF0D1716)
-val OnBackgroundDark = Color(0xFFDCE5E2)
-val SurfaceDark = Color(0xFF0D1716)
-val OnSurfaceDark = Color(0xFFDCE5E2)
-val SurfaceVariantDark = Color(0xFF3B4A47)
-val OnSurfaceVariantDark = Color(0xFFB9C9C5)
-val OutlineDark = Color(0xFF859691)
+val OnBackgroundDark = Color(0xFFE2EBE8)
+val SurfaceDark = Color(0xFF111B1A)
+val OnSurfaceDark = Color(0xFFE2EBE8)
+val SurfaceVariantDark = Color(0xFF44534F)
+val OnSurfaceVariantDark = Color(0xFFD0DDD9)
+val OutlineDark = Color(0xFF91A19D)
 
 val ErrorDark = Color(0xFFFFB4AB)
 val OnErrorDark = Color(0xFF690005)
 val ErrorContainerDark = Color(0xFF93000A)
 val OnErrorContainerDark = Color(0xFFFFDAD6)
 
+val WarningLight = Color(0xFF8A4B00)
+val OnWarningLight = Color(0xFFFFFFFF)
+val WarningContainerLight = Color(0xFFFFDDB8)
+val OnWarningContainerLight = Color(0xFF2C1600)
+
+val WarningDark = Color(0xFFFFB86B)
+val OnWarningDark = Color(0xFF4A2700)
+val WarningContainerDark = Color(0xFF6A3A00)
+val OnWarningContainerDark = Color(0xFFFFDDB8)
+
 // Medication status backgrounds (soft semantic colors)
-val MedicationPendingContainer = Color(0xFFEEF3F4)
-val MedicationTakenContainer = Color(0xFFE3F7EE)
-val MedicationMissedContainer = Color(0xFFFCE9EC)
+val MedicationPendingContainerLight = Color(0xFFEEF3F4)
+val MedicationTakenContainerLight = Color(0xFFE3F7EE)
+val MedicationMissedContainerLight = Color(0xFFFCE9EC)
+
+val MedicationPendingContainerDark = Color(0xFF1B2624)
+val MedicationTakenContainerDark = Color(0xFF173126)
+val MedicationMissedContainerDark = Color(0xFF351E24)
+
+val MedicationTakenAccentLight = Color(0xFF2E7D32)
+val MedicationTakenAccentDark = Color(0xFF8FDB9C)
+val MedicationMissedAccentLight = Color(0xFFC62828)
+val MedicationMissedAccentDark = Color(0xFFFF9D97)
+
+val MedicationPendingContainer = MedicationPendingContainerLight
+val MedicationTakenContainer = MedicationTakenContainerLight
+val MedicationMissedContainer = MedicationMissedContainerLight

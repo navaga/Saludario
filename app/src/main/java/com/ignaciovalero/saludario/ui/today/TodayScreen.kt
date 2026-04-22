@@ -52,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -71,9 +72,16 @@ import com.ignaciovalero.saludario.core.localization.localizedMedicationDosage
 import com.ignaciovalero.saludario.domain.scheduling.ScheduledDose
 import com.ignaciovalero.saludario.domain.scheduling.ScheduledDoseStatus
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
-import com.ignaciovalero.saludario.ui.theme.MedicationMissedContainer
-import com.ignaciovalero.saludario.ui.theme.MedicationPendingContainer
-import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainer
+import com.ignaciovalero.saludario.ui.theme.MedicationMissedAccentDark
+import com.ignaciovalero.saludario.ui.theme.MedicationMissedAccentLight
+import com.ignaciovalero.saludario.ui.theme.MedicationMissedContainerDark
+import com.ignaciovalero.saludario.ui.theme.MedicationMissedContainerLight
+import com.ignaciovalero.saludario.ui.theme.MedicationPendingContainerDark
+import com.ignaciovalero.saludario.ui.theme.MedicationPendingContainerLight
+import com.ignaciovalero.saludario.ui.theme.MedicationTakenAccentDark
+import com.ignaciovalero.saludario.ui.theme.MedicationTakenAccentLight
+import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainerDark
+import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainerLight
 import com.ignaciovalero.saludario.ui.theme.SaludarioTheme
 import java.time.Instant
 import java.time.LocalDate
@@ -307,7 +315,7 @@ fun DayScreen(
                             )
                             progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f)
                         },
-                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                     color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(AppSpacing.sm))
@@ -466,10 +474,12 @@ private fun ScheduledMedicationCard(
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val takenSoftColor = MedicationTakenContainer
-    val takenAccentColor = Color(0xFF2E7D32)
-    val missedSoftColor = MedicationMissedContainer
-    val missedAccentColor = Color(0xFFC62828)
+    val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val pendingSoftColor = if (isDarkTheme) MedicationPendingContainerDark else MedicationPendingContainerLight
+    val takenSoftColor = if (isDarkTheme) MedicationTakenContainerDark else MedicationTakenContainerLight
+    val takenAccentColor = if (isDarkTheme) MedicationTakenAccentDark else MedicationTakenAccentLight
+    val missedSoftColor = if (isDarkTheme) MedicationMissedContainerDark else MedicationMissedContainerLight
+    val missedAccentColor = if (isDarkTheme) MedicationMissedAccentDark else MedicationMissedAccentLight
     val localizedTime = context.localizedLocalTime(item.scheduledAt.toLocalTime())
     val localizedDosage = context.localizedMedicationDosage(item.medication.dosage, item.medication.unit)
 
@@ -483,7 +493,7 @@ private fun ScheduledMedicationCard(
         targetValue = when (item.status) {
             ScheduledDoseStatus.TAKEN -> takenSoftColor
             ScheduledDoseStatus.MISSED -> missedSoftColor
-            ScheduledDoseStatus.PENDING -> MedicationPendingContainer
+            ScheduledDoseStatus.PENDING -> pendingSoftColor
         },
         animationSpec = tween(durationMillis = 300),
         label = "cardColor"
@@ -504,7 +514,7 @@ private fun ScheduledMedicationCard(
     val actionContainerColor = when (item.status) {
         ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.primary
         ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.error
-        ScheduledDoseStatus.TAKEN -> MedicationTakenContainer
+        ScheduledDoseStatus.TAKEN -> takenSoftColor
     }
 
     val actionContentColor = when (item.status) {
@@ -518,7 +528,7 @@ private fun ScheduledMedicationCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         border = if (item.status != ScheduledDoseStatus.PENDING) {
-            BorderStroke(1.dp, accentColor.copy(alpha = 0.45f))
+            BorderStroke(1.dp, accentColor.copy(alpha = 0.65f))
         } else {
             null
         }
@@ -553,7 +563,7 @@ private fun ScheduledMedicationCard(
 
                 Box(
                     modifier = Modifier
-                        .background(accentColor.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
+                        .background(accentColor.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
                         .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs + 1.dp)
                 ) {
                     Text(

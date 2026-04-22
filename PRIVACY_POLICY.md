@@ -38,12 +38,12 @@ Usamos los datos para:
 
 ## 5. Servicios de terceros
 
-La app puede integrar los siguientes servicios de Google Firebase:
+La app integra los siguientes servicios de Google Firebase en la version publicada:
 
-- Firebase Analytics: para medir eventos tecnicos y de uso basicos de la aplicacion.
-- Firebase Crashlytics: para registrar fallos y diagnosticos tecnicos.
+- Firebase Analytics: mide eventos tecnicos y de uso basicos de la aplicacion.
+- Firebase Crashlytics: registra fallos y diagnosticos tecnicos.
 
-Estos servicios pueden tratar informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.
+Estos servicios tratan informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.
 
 Firebase / Google:
 - https://firebase.google.com/support/privacy
@@ -76,10 +76,31 @@ La persona usuaria puede:
 - Cambiar idioma y otras preferencias dentro de la app.
 - Borrar los datos de la app desde Android o desinstalarla para eliminar el almacenamiento local del dispositivo.
 
-## 9. Menores de edad
+## 9. Conservacion y eliminacion de datos
+
+Los datos funcionales de la app (medicacion, salud, preferencias) se conservan en el dispositivo mientras la persona usuaria no los elimine activamente.
+
+- La persona usuaria puede borrar todos los datos desde Ajustes > Aplicaciones > Saludario > Almacenamiento en Android, o desinstalando la app.
+- Los datos tecnicos tratados por Firebase Analytics y Crashlytics siguen las politicas de retencion propias de Google.
+
+## 10. Seguridad
+
+Los datos de medicacion y salud se almacenan en la base de datos local del dispositivo, protegida por el sistema operativo Android mediante el aislamiento de aplicaciones. No se transmiten a servidores propios. La persona usuaria es responsable de proteger el acceso fisico a su dispositivo.
+
+## 11. Transferencias internacionales
+
+Los datos tecnicos tratados por Firebase Analytics y Firebase Crashlytics pueden ser transferidos y procesados en servidores de Google fuera del Espacio Economico Europeo, conforme a las garantias establecidas en las politicas de privacidad de Google.
+
+## 12. Derechos de la persona usuaria
+
+En relacion con los datos tratados directamente por Saludario (datos funcionales locales), la persona usuaria tiene control total desde el propio dispositivo: puede consultarlos, modificarlos y eliminarlos en cualquier momento desde la app o desinstalando la aplicacion.
+
+Para cualquier consulta o ejercicio de derechos relacionados con datos tratados por Firebase / Google, puede contactar con Ignacio Valero Garcia en Navaga1@gmail.com o dirigirse directamente a Google conforme a sus politicas.
+
+## 13. Menores de edad
 
 La app no esta disenada especificamente para menores de edad. Si se ofrece a menores, debe hacerse bajo supervision adecuada y con cumplimiento de la normativa aplicable.
 
-## 10. Cambios en esta politica
+## 14. Cambios en esta politica
 
 Esta politica puede actualizarse para reflejar cambios tecnicos, legales o funcionales. La fecha de ultima actualizacion se indicara al inicio del documento.

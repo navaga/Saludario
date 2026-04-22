@@ -2,6 +2,8 @@ package com.ignaciovalero.saludario.domain.insights
 
 import android.content.Context
 import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.core.localization.localizedDurationMinutes
+import com.ignaciovalero.saludario.core.localization.localizedLocalTime
 import com.ignaciovalero.saludario.data.local.entity.MedicationEntity
 import com.ignaciovalero.saludario.data.local.entity.MedicationLogEntity
 import com.ignaciovalero.saludario.data.local.entity.MedicationStatus
@@ -172,6 +174,8 @@ class MedicationInsightsAnalyzer(private val context: Context) {
         val avgDelay = delays.sum() / delays.size
         if (avgDelay < DELAY_THRESHOLD_MINUTES) return null
 
+        val formattedDelay = context.localizedDurationMinutes(avgDelay)
+
         val delayByScheduledHour = takenLogs
             .filter { Duration.between(it.scheduledTime, it.takenTime).toMinutes() > DELAY_THRESHOLD_MINUTES }
             .groupBy { it.scheduledTime.toLocalTime().hour }
@@ -188,7 +192,12 @@ class MedicationInsightsAnalyzer(private val context: Context) {
         } else null
 
         val suggestion = if (suggestedTime != null) {
-            context.getString(R.string.insight_delay_with_suggestion, medication.name, suggestedTime.toString(), formatHour(worstHour))
+            context.getString(
+                R.string.insight_delay_with_suggestion,
+                medication.name,
+                context.localizedLocalTime(suggestedTime),
+                formatHour(worstHour)
+            )
         } else {
             context.getString(R.string.insight_delay_generic, medication.name)
         }
@@ -198,7 +207,7 @@ class MedicationInsightsAnalyzer(private val context: Context) {
             medicationName = medication.name,
             type = InsightType.FREQUENT_DELAYS,
             severity = InsightSeverity.INFO,
-            message = context.getString(R.string.insight_delay_message, medication.name, avgDelay),
+            message = context.getString(R.string.insight_delay_message, medication.name, formattedDelay),
             suggestion = suggestion,
             details = InsightDetails.DelayInfo(
                 averageDelayMinutes = avgDelay,
@@ -243,7 +252,7 @@ class MedicationInsightsAnalyzer(private val context: Context) {
     }
 
     private fun formatHour(hour: Int): String =
-        LocalTime.of(hour, 0).toString()
+        context.localizedLocalTime(LocalTime.of(hour, 0))
 
     private fun estimateDaysRemaining(
         medication: MedicationEntity,
@@ -264,15 +273,11 @@ class MedicationInsightsAnalyzer(private val context: Context) {
         return kotlin.math.ceil(medication.stockRemaining / averageDailyConsumption).toInt()
     }
 
-    private fun formatQuantity(value: Double): String {
-        return if (value % 1.0 == 0.0) value.toInt().toString() else value.toString().trimEnd('0').trimEnd('.')
-    }
-
     companion object {
         const val MIN_LOGS_FOR_ANALYSIS = 3
         const val MISSED_THRESHOLD_PERCENT = 25
         const val DELAY_THRESHOLD_MINUTES = 15L
-        const val GOOD_ADHERENCE_PERCENT = 90
+        const val GOOD_ADHERENCE_PERCENT = 80
         const val CRITICAL_LOW_STOCK_UNITS = 2.0
         const val LOW_STOCK_THRESHOLD_PERCENT = 15
     }

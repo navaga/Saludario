@@ -285,7 +285,15 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     InsightsScreen(
                         uiState = insightsState,
-                        contentPadding = innerPadding
+                        contentPadding = innerPadding,
+                        snackbarHostState = snackbarHostState,
+                        onOpenMedication = { medicationId ->
+                            navController.navigate(Screen.EditMedication.createRoute(medicationId))
+                        },
+                        onAddStock = viewModel::addStock,
+                        onDismissInsight = viewModel::dismissInsight,
+                        onRetry = viewModel::retry,
+                        onMessageShown = viewModel::onMessageShown
                     )
                     TutorialOverlayHost(
                         screen = TutorialScreen.INSIGHTS,

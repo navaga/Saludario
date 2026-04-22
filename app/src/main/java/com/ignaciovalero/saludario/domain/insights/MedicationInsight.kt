@@ -12,6 +12,9 @@ data class MedicationInsight(
     val details: InsightDetails? = null
 )
 
+fun MedicationInsight.dismissalKey(): String =
+    "${medicationId}_${type.name}_${message.hashCode()}"
+
 enum class InsightType {
     FREQUENTLY_MISSED,
     FREQUENT_DELAYS,
