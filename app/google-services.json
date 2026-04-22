@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "931371693796",
+    "project_id": "saludario-prod",
+    "storage_bucket": "saludario-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:931371693796:android:d07eb690617f6bb883def1",
+        "android_client_info": {
+          "package_name": "com.ignaciovalero.saludario"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdJWB4mSVm4zv7SALvmb4eqCzyDB76I1Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

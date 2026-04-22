@@ -1,0 +1,46 @@
+PRIVACY POLICY
+
+Saludario is a personal support app for medication reminders and health record tracking. It does not provide diagnosis, treatment, or medical advice.
+
+OWNER AND CONTACT
+
+Owner: Ignacio Valero Garcia
+Contact: Navaga1@gmail.com
+
+WHAT DATA THE APP USES
+
+The app may process information entered by the user on the device, such as medications, doses, schedules, stock, and health records.
+
+It may also store local app preferences, such as language, onboarding, tutorials, and low stock alert state.
+
+The published version may use Firebase Analytics and Firebase Crashlytics for basic technical analytics and crash diagnostics.
+
+WHERE DATA IS STORED
+
+Saludario's main functional data is stored locally on the device.
+
+The current configuration excludes the local database and app preferences from Android cloud backup and device-to-device transfer.
+
+WHY DATA IS USED
+
+Data is used to show medication reminders, record doses, manage stock, save health records, keep app preferences, and improve technical stability.
+
+NOTIFICATIONS AND PRIVACY
+
+If the user grants notification permission, the app may show medication reminders and low stock alerts.
+
+On the lock screen, the app tries to show a private and generic notification preview to reduce exposure of sensitive details.
+
+THIRD-PARTY SERVICES
+
+The app may integrate Google Firebase services such as Firebase Analytics and Firebase Crashlytics.
+
+These services may process technical device and app information according to their own terms and privacy policies.
+
+YOUR CHOICES
+
+The user can grant or deny notification permission, change language and other preferences inside the app, and delete local data from Android or by uninstalling the app.
+
+IMPORTANT
+
+Saludario is a personal support tool and does not replace professional healthcare.

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politica de Privacidad | Saludario</title>
+    <meta name="description" content="Politica de privacidad de Saludario para Google Play y personas usuarias de la aplicacion.">
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f5efe4;
+            --bg-accent: #dfe9de;
+            --surface: rgba(255, 252, 247, 0.92);
+            --surface-border: rgba(60, 72, 53, 0.12);
+            --text: #213126;
+            --muted: #526253;
+            --accent: #2f6b4f;
+            --accent-soft: #e0efe5;
+            --shadow: 0 24px 60px rgba(33, 49, 38, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.8), transparent 34%),
+                linear-gradient(135deg, var(--bg) 0%, var(--bg-accent) 100%);
+        }
+
+        .shell {
+            width: min(920px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 48px 0 64px;
+        }
+
+        .hero {
+            padding: 28px;
+            border-radius: 28px;
+            background: linear-gradient(145deg, rgba(47, 107, 79, 0.95), rgba(25, 69, 54, 0.92));
+            color: #f7f4ef;
+            box-shadow: var(--shadow);
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            font-size: 0.88rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0.82;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3.35rem);
+            line-height: 1;
+        }
+
+        .lead {
+            max-width: 52rem;
+            margin: 18px 0 0;
+            font-size: 1.06rem;
+            line-height: 1.7;
+            color: rgba(247, 244, 239, 0.9);
+        }
+
+        .meta {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            margin-top: 22px;
+        }
+
+        .meta-card {
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .meta-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+
+        .content {
+            margin-top: 24px;
+            padding: 28px;
+            border: 1px solid var(--surface-border);
+            border-radius: 28px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        section + section {
+            margin-top: 28px;
+            padding-top: 28px;
+            border-top: 1px solid rgba(60, 72, 53, 0.1);
+        }
+
+        h2 {
+            margin: 0 0 12px;
+            font-size: 1.3rem;
+            color: var(--accent);
+        }
+
+        p,
+        li {
+            font-size: 1.03rem;
+            line-height: 1.75;
+        }
+
+        ul {
+            margin: 14px 0 0;
+            padding-left: 22px;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        .notice {
+            margin-top: 28px;
+            padding: 18px 20px;
+            border-radius: 20px;
+            background: var(--accent-soft);
+            color: var(--text);
+        }
+
+        .footer {
+            margin-top: 22px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 640px) {
+            .shell {
+                width: min(100% - 20px, 920px);
+                padding-top: 18px;
+                padding-bottom: 28px;
+            }
+
+            .hero,
+            .content {
+                padding: 20px;
+                border-radius: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <header class="hero">
+            <p class="eyebrow">Saludario</p>
+            <h1>Politica de Privacidad</h1>
+            <p class="lead">Esta pagina describe como Saludario trata la informacion necesaria para recordatorios de medicacion, registros personales de salud y funcionamiento tecnico de la aplicacion.</p>
+            <div class="meta">
+                <div class="meta-card">
+                    <span class="meta-label">Responsable</span>
+                    <strong>Ignacio Valero Garcia</strong>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Contacto</span>
+                    <strong><a href="mailto:Navaga1@gmail.com">Navaga1@gmail.com</a></strong>
+                </div>
+                <div class="meta-card">
+                    <span class="meta-label">Ultima actualizacion</span>
+                    <strong>22 de abril de 2026</strong>
+                </div>
+            </div>
+        </header>
+
+        <article class="content">
+            <section>
+                <h2>1. Que es Saludario</h2>
+                <p>Saludario es una aplicacion de apoyo personal para recordar medicacion y registrar datos de salud. No ofrece diagnostico, tratamiento ni consejo medico.</p>
+            </section>
+
+            <section>
+                <h2>2. Que datos puede tratar la app</h2>
+                <ul>
+                    <li>Datos introducidos por la persona usuaria en el dispositivo, como medicamentos, dosis, horarios, stock y registros de salud.</li>
+                    <li>Preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.</li>
+                    <li>Datos tecnicos y de uso limitados mediante Firebase Analytics y Firebase Crashlytics, cuando esos servicios esten habilitados en la version publicada.</li>
+                    <li>Notificaciones locales con informacion de medicacion si la persona usuaria concede el permiso correspondiente.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>3. Donde se guardan los datos</h2>
+                <p>Los datos funcionales principales de Saludario se guardan localmente en el dispositivo.</p>
+                <ul>
+                    <li>La informacion de medicacion y salud se almacena en una base de datos local del dispositivo.</li>
+                    <li>Las preferencias de la app se almacenan localmente.</li>
+                    <li>La configuracion actual excluye la base de datos local y las preferencias del backup automatico de Android en la nube y de la transferencia entre dispositivos.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>4. Para que se usan los datos</h2>
+                <ul>
+                    <li>Mostrar y gestionar recordatorios de medicacion.</li>
+                    <li>Registrar el estado de las tomas y el stock.</li>
+                    <li>Guardar registros de salud introducidos por la persona usuaria.</li>
+                    <li>Mantener preferencias de idioma, onboarding y tutoriales.</li>
+                    <li>Mejorar estabilidad y funcionamiento tecnico de la app mediante analitica basica y diagnostico de fallos.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>5. Servicios de terceros</h2>
+                <p>La app puede integrar servicios de Google Firebase como Firebase Analytics y Firebase Crashlytics. Estos servicios pueden tratar informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.</p>
+                <ul>
+                    <li><a href="https://firebase.google.com/support/privacy">Firebase Privacy and Security</a></li>
+                    <li><a href="https://policies.google.com/privacy">Google Privacy Policy</a></li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>6. Permisos y notificaciones</h2>
+                <p>Saludario solicita permiso de notificaciones para poder mostrar recordatorios y avisos relacionados con la medicacion. En pantalla bloqueada intenta mostrar una vista privada y generica de la notificacion para no exponer el nombre del medicamento ni la dosis en la previsualizacion publica.</p>
+            </section>
+
+            <section>
+                <h2>7. Lo que la app no hace</h2>
+                <ul>
+                    <li>No requiere crear una cuenta ni iniciar sesion en su funcionamiento actual.</li>
+                    <li>No vende datos personales.</li>
+                    <li>No usa camara, microfono ni ubicacion.</li>
+                    <li>No esta pensada como plataforma de publicidad.</li>
+                    <li>No sincroniza de forma ordinaria los datos de medicacion o salud con un backend propio.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>8. Opciones de la persona usuaria</h2>
+                <ul>
+                    <li>Conceder o denegar el permiso de notificaciones.</li>
+                    <li>Desactivar notificaciones desde los ajustes del sistema.</li>
+                    <li>Cambiar idioma y otras preferencias dentro de la app.</li>
+                    <li>Borrar los datos de la app desde Android o desinstalarla para eliminar el almacenamiento local.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>9. Menores de edad</h2>
+                <p>La app no esta disenada especificamente para menores de edad. Si se ofrece a menores, debe hacerse bajo supervision adecuada y conforme a la normativa aplicable.</p>
+            </section>
+
+            <section>
+                <h2>10. Cambios en esta politica</h2>
+                <p>Esta politica puede actualizarse para reflejar cambios tecnicos, legales o funcionales. La fecha de ultima actualizacion se indicara al inicio de este documento.</p>
+            </section>
+
+            <div class="notice">
+                Esta pagina puede usarse como URL publica HTTPS para la ficha de Google Play una vez publicada en GitHub Pages.
+            </div>
+        </article>
+
+        <p class="footer">Saludario · Politica de privacidad publica para Google Play</p>
+    </main>
+</body>
+</html>

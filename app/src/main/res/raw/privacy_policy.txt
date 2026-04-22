@@ -1,0 +1,46 @@
+POLITICA DE PRIVACIDAD
+
+Saludario es una aplicacion de apoyo personal para recordar medicacion y registrar datos de salud. No ofrece diagnostico, tratamiento ni consejo medico.
+
+RESPONSABLE Y CONTACTO
+
+Responsable: Ignacio Valero Garcia
+Contacto: Navaga1@gmail.com
+
+QUE DATOS USA LA APP
+
+La app puede tratar informacion introducida por la persona usuaria en el dispositivo, como medicamentos, dosis, horarios, stock y registros de salud.
+
+Tambien puede guardar preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.
+
+La version publicada puede usar Firebase Analytics y Firebase Crashlytics para analitica tecnica basica y diagnostico de fallos.
+
+DONDE SE GUARDAN LOS DATOS
+
+Los datos funcionales principales de Saludario se guardan localmente en el dispositivo.
+
+La configuracion actual excluye la base de datos local y las preferencias del backup automatico de Android en la nube y en transferencia entre dispositivos.
+
+PARA QUE SE USAN LOS DATOS
+
+Los datos se usan para mostrar recordatorios de medicacion, registrar tomas, controlar el stock, guardar registros de salud, mantener preferencias de la app y mejorar estabilidad tecnica.
+
+NOTIFICACIONES Y PRIVACIDAD
+
+Si la persona usuaria concede el permiso de notificaciones, la app puede mostrar recordatorios y avisos de stock.
+
+En pantalla bloqueada, la app intenta mostrar una vista privada y generica de la notificacion para reducir la exposicion de detalles sensibles.
+
+SERVICIOS DE TERCEROS
+
+La app puede integrar servicios de Google Firebase, como Firebase Analytics y Firebase Crashlytics.
+
+Estos servicios pueden tratar informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.
+
+TUS OPCIONES
+
+La persona usuaria puede conceder o denegar el permiso de notificaciones, cambiar idioma y otras preferencias dentro de la app, y borrar los datos locales desde Android o al desinstalar la app.
+
+IMPORTANTE
+
+Saludario es una herramienta de apoyo personal y no sustituye la atencion profesional sanitaria.

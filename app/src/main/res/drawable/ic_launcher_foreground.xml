@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Corazon blanco con sombra sutil -->
+    <path
+        android:fillColor="#1A000000"
+        android:pathData="M54,77 C54,77 17,57 17,39 C17,25 28,18 39,25 C45,28 50,34 54,42 C58,34 63,28 69,25 C80,18 91,25 91,39 C91,57 54,77 54,77 Z" />
+
+    <!-- Corazon blanco principal -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,74 C54,74 16,54 16,37 C16,23 27,17 38,24 C44,27 49,33 54,41 C59,33 64,27 70,24 C81,17 92,23 92,37 C92,54 54,74 54,74 Z" />
+
+    <!-- Linea ECG / pulso (teal) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF03DAC5"
+        android:strokeWidth="3.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M24,50 L35,50 L39,38 L44,62 L49,50 L54,50 L59,41 L64,59 L68,50 L84,50" />
+
+</vector>
