@@ -83,9 +83,3 @@ La app no esta disenada especificamente para menores de edad. Si se ofrece a men
 ## 10. Cambios en esta politica
 
 Esta politica puede actualizarse para reflejar cambios tecnicos, legales o funcionales. La fecha de ultima actualizacion se indicara al inicio del documento.
-
-## 11. Antes de publicar
-
-Antes de enviar la app a Google Play debes:
-
-- Publicar este texto en una URL publica HTTPS y usar esa URL en la ficha de Google Play.

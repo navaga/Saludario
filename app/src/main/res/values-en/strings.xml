@@ -4,7 +4,7 @@
 
     <string name="tutorial_understood">Got it</string>
     <string name="tutorial_today_title">Welcome to Today</string>
-    <string name="tutorial_today_message">Here you can see your doses for the day. Mark each one when you take it to keep a clear record. You can also enable simple mode for older adults from the accessibility icon.</string>
+    <string name="tutorial_today_message">Here you can see your doses for the day. Mark each one when you take it to keep a clear record. You can also enable simple mode from the accessibility icon for easier reading and clearer controls.</string>
     <string name="tutorial_medications_title">Medication List</string>
     <string name="tutorial_medications_message">On this screen you can review your medications, edit them, or delete them whenever needed.</string>
     <string name="tutorial_add_title">Add Medication</string>
@@ -103,7 +103,7 @@
     <string name="today_title">Today</string>
     <string name="today_empty">There are no medications scheduled for today.</string>
     <string name="today_simple_mode_cd">Simple mode</string>
-    <string name="today_simple_mode_tooltip">Try simple mode: larger text and easy buttons for older adults.</string>
+    <string name="today_simple_mode_tooltip">Try simple mode: larger text and easier buttons for anyone who needs a more accessible interface.</string>
     <string name="today_mark_not_taken">Mark as not taken</string>
     <string name="today_mark_taken">Mark as taken</string>
     <string name="today_status_pending">Pending</string>

@@ -5,7 +5,7 @@
     <!-- Tutoriales por pantalla -->
     <string name="tutorial_understood">Entendido</string>
     <string name="tutorial_today_title">Bienvenido a Hoy</string>
-    <string name="tutorial_today_message">Aquí ves tus dosis del día. Marca cada toma cuando la completes para llevar un control claro. También puedes activar el modo simple para personas mayores desde el icono de accesibilidad.</string>
+    <string name="tutorial_today_message">Aquí ves tus dosis del día. Marca cada toma cuando la completes para llevar un control claro. También puedes activar el modo simple desde el icono de accesibilidad para una lectura más cómoda y controles más claros.</string>
     <string name="tutorial_medications_title">Lista de Medicamentos</string>
     <string name="tutorial_medications_message">En esta pantalla puedes revisar tus medicamentos, editarlos o eliminarlos cuando lo necesites.</string>
     <string name="tutorial_add_title">Añadir Medicamento</string>
@@ -107,7 +107,7 @@
     <string name="today_title">Hoy</string>
     <string name="today_empty">No hay medicaciones programadas para hoy.</string>
     <string name="today_simple_mode_cd">Modo simple</string>
-    <string name="today_simple_mode_tooltip">Prueba el modo simple: texto más grande y botones fáciles para personas mayores.</string>
+    <string name="today_simple_mode_tooltip">Prueba el modo simple: texto más grande y botones más fáciles para quien necesite una interfaz más accesible.</string>
     <string name="today_mark_not_taken">Marcar como no tomado</string>
     <string name="today_mark_taken">Marcar como tomado</string>
     <string name="today_status_pending">Pendiente</string>
