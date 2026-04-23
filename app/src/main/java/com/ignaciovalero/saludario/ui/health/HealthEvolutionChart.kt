@@ -16,10 +16,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -27,6 +29,9 @@ import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.data.local.entity.HealthRecord
 import com.ignaciovalero.saludario.data.local.entity.HealthRecordType
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
+import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.axis.AxisPosition
+import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
@@ -37,6 +42,7 @@ import com.patrykandpatrick.vico.core.chart.line.LineChart
 import com.patrykandpatrick.vico.core.component.shape.ShapeComponent
 import com.patrykandpatrick.vico.core.entry.FloatEntry
 import com.patrykandpatrick.vico.core.entry.entryModelOf
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun HealthEvolutionChart(
@@ -51,9 +57,20 @@ fun HealthEvolutionChart(
     val secondarySeries = ordered.mapNotNull { it.secondaryValue?.toFloat() }
     val primaryEntries = primarySeries.mapIndexed { index, value -> FloatEntry(index.toFloat(), value) }
     val secondaryEntries = secondarySeries.mapIndexed { index, value -> FloatEntry(index.toFloat(), value) }
+    val locale = LocalConfiguration.current.locales[0]
+    val hasSingleDay = remember(ordered) {
+        ordered.map { it.recordedAt.toLocalDate() }.distinct().size <= 1
+    }
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.tertiary
+    val latestRecord = if (type == HealthRecordType.BLOOD_PRESSURE) {
+        ordered.lastOrNull()?.takeIf { it.secondaryValue != null }
+    } else {
+        null
+    }
 
-    val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
-    val secondaryColor = MaterialTheme.colorScheme.tertiary.toArgb()
+    val primaryColorArgb = primaryColor.toArgb()
+    val secondaryColorArgb = secondaryColor.toArgb()
 
     val zones = type.healthZones()
     val decorations: List<Decoration> = zones.map { zone ->
@@ -67,11 +84,11 @@ fun HealthEvolutionChart(
     val chart = lineChart(
         lines = if (type == HealthRecordType.BLOOD_PRESSURE) {
             listOf(
-                LineChart.LineSpec(lineColor = primaryColor, lineThicknessDp = 2.5f),
-                LineChart.LineSpec(lineColor = secondaryColor, lineThicknessDp = 2.5f)
+                LineChart.LineSpec(lineColor = primaryColorArgb, lineThicknessDp = 2.5f),
+                LineChart.LineSpec(lineColor = secondaryColorArgb, lineThicknessDp = 2.5f)
             )
         } else {
-            listOf(LineChart.LineSpec(lineColor = primaryColor, lineThicknessDp = 2.5f))
+            listOf(LineChart.LineSpec(lineColor = primaryColorArgb, lineThicknessDp = 2.5f))
         },
         decorations = decorations.ifEmpty { null }
     )
@@ -80,6 +97,34 @@ fun HealthEvolutionChart(
         entryModelOf(primaryEntries, secondaryEntries)
     } else {
         entryModelOf(primaryEntries)
+    }
+    val bottomAxisValueFormatter = remember(ordered, locale, hasSingleDay) {
+        val formatter = DateTimeFormatter.ofPattern(
+            if (hasSingleDay) "HH:mm" else if (ordered.size <= 6) "d MMM" else "d/M",
+            locale
+        )
+        AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
+            val index = value.toInt()
+            if (index !in ordered.indices || value != index.toFloat()) {
+                ""
+            } else {
+                val record = ordered[index]
+                if (hasSingleDay) {
+                    record.recordedAt.toLocalTime().format(formatter)
+                } else {
+                    record.recordedAt.toLocalDate().format(formatter)
+                }
+            }
+        }
+    }
+    val bottomAxisItemPlacer = remember(ordered.size) {
+        AxisItemPlacer.Horizontal.default(
+            spacing = when {
+                ordered.size <= 4 -> 1
+                ordered.size <= 8 -> 2
+                else -> 3
+            }
+        )
     }
 
     Card(
@@ -98,6 +143,13 @@ fun HealthEvolutionChart(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
+            if (latestRecord != null) {
+                BloodPressureSummary(
+                    record = latestRecord,
+                    primaryColor = primaryColor,
+                    secondaryColor = secondaryColor
+                )
+            }
             if (zones.isNotEmpty()) {
                 ZoneLegend(zones = zones)
             }
@@ -105,10 +157,74 @@ fun HealthEvolutionChart(
                 chart = chart,
                 model = model,
                 startAxis = rememberStartAxis(),
-                bottomAxis = rememberBottomAxis(),
+                bottomAxis = rememberBottomAxis(
+                    valueFormatter = bottomAxisValueFormatter,
+                    itemPlacer = bottomAxisItemPlacer
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(chartHeight.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun BloodPressureSummary(
+    record: HealthRecord,
+    primaryColor: Color,
+    secondaryColor: Color
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+    ) {
+        PressureSummaryCard(
+            label = stringResource(R.string.health_label_systolic),
+            value = formatHealthValue(record.value),
+            unit = record.unit,
+            accentColor = primaryColor,
+            modifier = Modifier.weight(1f)
+        )
+        PressureSummaryCard(
+            label = stringResource(R.string.health_label_diastolic),
+            value = formatHealthValue(record.secondaryValue ?: 0.0),
+            unit = record.unit,
+            accentColor = secondaryColor,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun PressureSummaryCard(
+    label: String,
+    value: String,
+    unit: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.12f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "$value $unit",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = accentColor
             )
         }
     }
@@ -148,6 +264,10 @@ private data class HealthZone(
     val legendColor: Int
 )
 
+private fun formatHealthValue(value: Double): String {
+    return if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
+}
+
 private fun HealthRecordType.healthZones(): List<HealthZone> = when (this) {
     HealthRecordType.GLUCOSE -> listOf(
         HealthZone(
@@ -175,32 +295,7 @@ private fun HealthRecordType.healthZones(): List<HealthZone> = when (this) {
             android.graphics.Color.argb(255, 183, 28, 28)
         )
     )
-    HealthRecordType.BLOOD_PRESSURE -> listOf(
-        HealthZone(
-            "< 90 mmHg (tensión baja)",
-            0f, 90f,
-            android.graphics.Color.argb(55, 33, 150, 243),
-            android.graphics.Color.argb(255, 21, 101, 192)
-        ),
-        HealthZone(
-            "90-120 mmHg (normal)",
-            90f, 120f,
-            android.graphics.Color.argb(55, 76, 175, 80),
-            android.graphics.Color.argb(255, 46, 125, 50)
-        ),
-        HealthZone(
-            "120-140 mmHg (elevado)",
-            120f, 140f,
-            android.graphics.Color.argb(55, 255, 152, 0),
-            android.graphics.Color.argb(255, 230, 81, 0)
-        ),
-        HealthZone(
-            "> 140 mmHg (hipertensión)",
-            140f, 300f,
-            android.graphics.Color.argb(55, 244, 67, 54),
-            android.graphics.Color.argb(255, 183, 28, 28)
-        )
-    )
+    HealthRecordType.BLOOD_PRESSURE -> emptyList()
     HealthRecordType.HEART_RATE -> listOf(
         HealthZone(
             "< 60 lpm (bradicardia)",

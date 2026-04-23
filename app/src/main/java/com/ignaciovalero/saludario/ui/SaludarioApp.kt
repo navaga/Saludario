@@ -73,6 +73,7 @@ fun SaludarioApp() {
         OnboardingScreen(
             uiState = onboardingState,
             onSelectLanguage = onboardingViewModel::selectLanguage,
+            onPageSelected = onboardingViewModel::setPage,
             onNext = onboardingViewModel::nextPage,
             onBack = onboardingViewModel::previousPage,
             onAcceptedDisclaimerChange = onboardingViewModel::setAcceptedDisclaimer,

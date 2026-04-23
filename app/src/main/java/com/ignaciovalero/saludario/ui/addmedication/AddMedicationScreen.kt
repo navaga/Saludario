@@ -1,5 +1,7 @@
 package com.ignaciovalero.saludario.ui.addmedication
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,6 +26,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
@@ -184,6 +187,11 @@ fun AddMedicationScreen(
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Text(
+                        text = stringResource(R.string.add_medication_quantity_optional_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     if (showInventoryFields) {
                         OutlinedButton(
@@ -238,11 +246,6 @@ fun AddMedicationScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
                     } else {
-                        Text(
-                            text = stringResource(R.string.add_medication_quantity_optional_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                         OutlinedButton(
                             onClick = { showInventoryFields = true },
                             modifier = Modifier.fillMaxWidth()
@@ -357,6 +360,11 @@ fun AddMedicationScreen(
             } else {
                 stringResource(R.string.add_medication_time_label)
             }
+            val timePlaceholder = if (uiState.scheduleType == MedicationScheduleType.INTERVAL) {
+                stringResource(R.string.add_medication_start_time_placeholder)
+            } else {
+                stringResource(R.string.add_medication_time_placeholder)
+            }
 
             Card(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -372,6 +380,13 @@ fun AddMedicationScreen(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(timeLabel) },
+                        placeholder = { Text(timePlaceholder) },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.AccessTime,
+                                contentDescription = null
+                            )
+                        },
                         isError = uiState.timeError != null,
                         supportingText = uiState.timeError?.let { errorRes ->
                             { Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error) }
@@ -394,6 +409,7 @@ fun AddMedicationScreen(
 
             Button(
                 onClick = onSave,
+                enabled = uiState.isFormReady,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)

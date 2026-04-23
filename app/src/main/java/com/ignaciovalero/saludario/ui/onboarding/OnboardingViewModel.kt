@@ -63,6 +63,10 @@ class OnboardingViewModel(
         localState.update { it.copy(page = (it.page - 1).coerceAtLeast(0)) }
     }
 
+    fun setPage(page: Int) {
+        localState.update { it.copy(page = page.coerceIn(0, 1)) }
+    }
+
     fun setAcceptedDisclaimer(accepted: Boolean) {
         localState.update { it.copy(acceptedDisclaimer = accepted) }
     }

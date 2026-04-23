@@ -127,6 +127,8 @@ class AddMedicationViewModel(
                     selectedTime = medication.times.firstOrNull(),
                     time = medication.times.firstOrNull()
                         ?.let { "%02d:%02d".format(it.hour, it.minute) } ?: "",
+                    startDate = medication.startDate,
+                    endDate = medication.endDate,
                     selectedDays = medication.specificDays?.toSet() ?: emptySet(),
                     intervalHours = medication.intervalHours?.toString() ?: ""
                 )
@@ -202,7 +204,8 @@ class AddMedicationViewModel(
                         unit = current.unit,
                         scheduleType = scheduleType,
                         times = times,
-                        startDate = LocalDate.now(),
+                        startDate = current.startDate,
+                        endDate = current.endDate,
                         specificDays = specificDays,
                         intervalHours = intervalHours,
                         stockTotal = stockTotalValue,
@@ -223,7 +226,8 @@ class AddMedicationViewModel(
                             unit = current.unit,
                             scheduleType = scheduleType,
                             times = times,
-                            startDate = LocalDate.now(),
+                            startDate = current.startDate,
+                            endDate = current.endDate,
                             specificDays = specificDays,
                             intervalHours = intervalHours,
                             stockTotal = stockTotalValue,

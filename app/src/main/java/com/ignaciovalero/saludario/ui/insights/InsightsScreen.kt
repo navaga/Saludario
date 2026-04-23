@@ -1,21 +1,26 @@
 package com.ignaciovalero.saludario.ui.insights
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.WarningAmber
@@ -29,6 +34,8 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,12 +43,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,6 +60,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,6 +69,7 @@ import com.ignaciovalero.saludario.domain.insights.InsightDetails
 import com.ignaciovalero.saludario.domain.insights.InsightSeverity
 import com.ignaciovalero.saludario.domain.insights.InsightType
 import com.ignaciovalero.saludario.domain.insights.MedicationInsight
+import com.ignaciovalero.saludario.domain.insights.dismissalKey
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -68,6 +81,7 @@ import com.ignaciovalero.saludario.ui.theme.WarningContainerDark
 import com.ignaciovalero.saludario.ui.theme.WarningContainerLight
 import com.ignaciovalero.saludario.ui.theme.WarningDark
 import com.ignaciovalero.saludario.ui.theme.WarningLight
+import kotlinx.coroutines.launch
 
 @Composable
 fun InsightsScreen(
@@ -81,10 +95,17 @@ fun InsightsScreen(
     onMessageShown: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val loadingContentDescription = stringResource(R.string.insights_loading_cd)
     var selectedFilter by remember { mutableStateOf(InsightsFilter.ALL) }
     var restockTarget by remember { mutableStateOf<MedicationInsight?>(null) }
     var restockAmount by remember { mutableStateOf("") }
+    val temporarilyHiddenInsightKeys = remember { mutableStateListOf<String>() }
+
+    LaunchedEffect(uiState.insights) {
+        val currentKeys = uiState.insights.map { it.dismissalKey() }.toSet()
+        temporarilyHiddenInsightKeys.removeAll { hiddenKey -> hiddenKey !in currentKeys }
+    }
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let { messageRes ->
@@ -138,7 +159,11 @@ fun InsightsScreen(
                     Text(
                         text = stringResource(R.string.insights_empty),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = AppSpacing.lg)
                     )
                 }
             }
@@ -148,7 +173,9 @@ fun InsightsScreen(
                     compareByDescending<MedicationInsight> { it.severity.priority() }
                         .thenBy { it.medicationName.lowercase() }
                 )
-                val filteredInsights = orderedInsights.filter { selectedFilter.matches(it) }
+                val filteredInsights = orderedInsights.filter {
+                    selectedFilter.matches(it) && !temporarilyHiddenInsightKeys.contains(it.dismissalKey())
+                }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
@@ -182,7 +209,29 @@ fun InsightsScreen(
                                         onOpenMedication(insight.medicationId)
                                     }
                                 },
-                                onDismiss = { onDismissInsight(insight) }
+                                onDismiss = {
+                                    if (snackbarHostState == null) {
+                                        onDismissInsight(insight)
+                                    } else {
+                                        val dismissalKey = insight.dismissalKey()
+                                        if (!temporarilyHiddenInsightKeys.contains(dismissalKey)) {
+                                            temporarilyHiddenInsightKeys.add(dismissalKey)
+                                        }
+                                        coroutineScope.launch {
+                                            val result = snackbarHostState.showSnackbar(
+                                                message = context.getString(R.string.insight_hidden_message),
+                                                actionLabel = context.getString(R.string.insight_hidden_undo),
+                                                withDismissAction = true,
+                                                duration = SnackbarDuration.Long
+                                            )
+                                            if (result == SnackbarResult.ActionPerformed) {
+                                                temporarilyHiddenInsightKeys.remove(dismissalKey)
+                                            } else {
+                                                onDismissInsight(insight)
+                                            }
+                                        }
+                                    }
+                                }
                             )
                         }
                     }
@@ -314,29 +363,31 @@ private fun InsightCard(
                 }
 
                 if (insight.suggestion != null) {
-                    Row(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = AppSpacing.xs)
-                            .background(
-                                color = visual.suggestionBg,
-                                shape = MaterialTheme.shapes.small
-                            )
-                            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                            .padding(top = AppSpacing.xs),
+                        shape = MaterialTheme.shapes.small,
+                        color = visual.suggestionBg,
+                        border = BorderStroke(1.dp, visual.suggestionBorder)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Info,
-                            contentDescription = null,
-                            tint = visual.iconColor,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = insight.suggestion,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = visual.contentColor
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = visual.iconColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = insight.suggestion,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = visual.contentColor
+                            )
+                        }
                     }
                 }
 
@@ -408,6 +459,15 @@ private fun InsightsHeader(
     onFilterSelected: (InsightsFilter) -> Unit,
     onClearFilters: () -> Unit
 ) {
+    val filterListState = rememberLazyListState()
+    val showScrollHint by remember {
+        derivedStateOf {
+            val layoutInfo = filterListState.layoutInfo
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleItemIndex < InsightsFilter.entries.lastIndex
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -445,19 +505,50 @@ private fun InsightsHeader(
                     }
                 }
             }
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
-            ) {
-                items(InsightsFilter.entries, key = { it.name }) { filter ->
-                    FilterChip(
-                        selected = selectedFilter == filter,
-                        onClick = { onFilterSelected(filter) },
-                        label = { Text(text = stringResource(filter.labelRes)) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+            Box(modifier = Modifier.fillMaxWidth()) {
+                LazyRow(
+                    state = filterListState,
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                    contentPadding = PaddingValues(end = AppSpacing.xl)
+                ) {
+                    items(InsightsFilter.entries, key = { it.name }) { filter ->
+                        FilterChip(
+                            selected = selectedFilter == filter,
+                            onClick = { onFilterSelected(filter) },
+                            label = { Text(text = stringResource(filter.labelRes)) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
                         )
-                    )
+                    }
+                }
+
+                if (showScrollHint) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .width(28.dp)
+                            .fillMaxHeight()
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        MaterialTheme.colorScheme.surfaceContainerLow
+                                    )
+                                )
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 2.dp)
+                                .size(16.dp)
+                        )
+                    }
                 }
             }
         }

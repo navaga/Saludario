@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.data.local.entity.MedicationScheduleType
 import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.LocalTime
 
 data class AddMedicationUiState(
@@ -17,6 +18,8 @@ data class AddMedicationUiState(
     val scheduleType: MedicationScheduleType = MedicationScheduleType.DAILY,
     val time: String = "",
     val selectedTime: LocalTime? = null,
+    val startDate: LocalDate = LocalDate.now(),
+    val endDate: LocalDate? = null,
     val selectedDays: Set<DayOfWeek> = emptySet(),
     val intervalHours: String = "",
     val isSaved: Boolean = false,
@@ -34,6 +37,19 @@ data class AddMedicationUiState(
         get() = nameError != null || dosageError != null || stockTotalError != null ||
                 stockRemainingError != null || lowStockThresholdError != null ||
                 timeError != null || daysError != null || intervalError != null
+
+    val isFormReady: Boolean
+        get() {
+            val effectiveRemaining = if (stockRemaining.isBlank()) stockTotal else stockRemaining
+            return validateName(name) == null &&
+                validateDosage(dosage) == null &&
+                validateOptionalNonNegativeDecimal(stockTotal) == null &&
+                validateStockRemaining(stockTotal, stockRemaining) == null &&
+                validateLowStockThreshold(effectiveRemaining, lowStockThreshold) == null &&
+                validateTime(selectedTime) == null &&
+                validateDays(scheduleType, selectedDays) == null &&
+                validateInterval(scheduleType, intervalHours) == null
+        }
 }
 
 val unitOptions = listOf("tableta", "cápsula", "ml", "gotas", "mg")

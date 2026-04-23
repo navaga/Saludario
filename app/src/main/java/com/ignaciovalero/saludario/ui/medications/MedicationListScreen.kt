@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -68,6 +69,7 @@ fun MedicationListScreen(
     val context = LocalContext.current
     var restockTarget by remember { mutableStateOf<MedicationItem?>(null) }
     var restockAmount by remember { mutableStateOf("") }
+    var deleteTarget by remember { mutableStateOf<MedicationItem?>(null) }
 
     LaunchedEffect(uiState.userMessage) {
         uiState.userMessage?.let {
@@ -84,13 +86,17 @@ fun MedicationListScreen(
 
         if (uiState.medications.isEmpty()) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = AppSpacing.lg),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = stringResource(R.string.medications_empty),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         } else {
@@ -99,7 +105,7 @@ fun MedicationListScreen(
                     start = AppSpacing.lg,
                     top = AppSpacing.md,
                     end = AppSpacing.lg,
-                    bottom = AppSpacing.xxl + 72.dp
+                    bottom = AppSpacing.xxl + 120.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
@@ -107,7 +113,7 @@ fun MedicationListScreen(
                     MedicationCard(
                         item = med,
                         onEdit = { onEdit(med.id) },
-                        onDelete = { onDelete(med.id) },
+                        onDelete = { deleteTarget = med },
                         onAddStock = {
                             restockTarget = med
                             restockAmount = ""
@@ -116,6 +122,34 @@ fun MedicationListScreen(
                 }
             }
         }
+    }
+
+    deleteTarget?.let { target ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null },
+            title = { Text(stringResource(R.string.medications_delete_confirm_title)) },
+            text = {
+                Text(
+                    text = stringResource(R.string.medications_delete_confirm_message, target.name),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete(target.id)
+                        deleteTarget = null
+                    }
+                ) {
+                    Text(stringResource(R.string.medications_delete_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTarget = null }) {
+                    Text(stringResource(R.string.time_picker_cancel))
+                }
+            }
+        )
     }
 
     val amountValue = restockAmount.replace(',', '.').toDoubleOrNull()

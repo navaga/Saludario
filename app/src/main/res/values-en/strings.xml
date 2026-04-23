@@ -45,7 +45,7 @@
     <string name="onboarding_legal_title">Important notice</string>
     <string name="onboarding_legal_body">Saludario is a personal support tool. It does not provide medical advice, diagnosis, or treatment. It does not replace professional healthcare. Always consult a doctor if you have health concerns.</string>
     <string name="onboarding_legal_checkbox">I understand and accept that this app is a support tool and not a medical service.</string>
-    <string name="onboarding_start_now">Start now</string>
+    <string name="onboarding_start_now">Continue</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_accept_continue">Accept and continue</string>
 
@@ -69,8 +69,8 @@
     <string name="health_detail_placeholder">Here you will be able to view and manage %1$s records.</string>
     <string name="health_add_record_title">New record</string>
     <string name="health_label_value">Value</string>
-    <string name="health_label_systolic">Systolic</string>
-    <string name="health_label_diastolic">Diastolic</string>
+    <string name="health_label_systolic">Top number</string>
+    <string name="health_label_diastolic">Bottom number</string>
     <string name="health_label_unit">Unit</string>
     <string name="health_label_notes_optional">Notes (optional)</string>
     <string name="health_error_invalid_value">Enter a valid value</string>
@@ -92,6 +92,8 @@
     <string name="health_filter_selected_date">Filtered: %1$s</string>
     <string name="health_pick_date_filter_cd">Choose date from calendar</string>
     <string name="health_clear_date_filter_cd">Clear date filter</string>
+    <string name="health_day_today">Today</string>
+    <string name="health_day_yesterday">Yesterday</string>
     <string name="health_previous_records_empty_filtered">There are no records for the selected date.</string>
     <string name="health_quick_last_10_title">Quick view: last 10 days</string>
     <string name="health_quick_chart_title">Mini chart</string>
@@ -111,6 +113,7 @@
     <string name="today_simple_mode_tooltip">Try simple mode: larger text and easier buttons for anyone who needs a more accessible interface.</string>
     <string name="today_mark_not_taken">Mark as not taken</string>
     <string name="today_mark_taken">Mark as taken</string>
+    <string name="today_mark_taken_button">Mark as taken</string>
     <string name="today_status_pending">Pending</string>
     <string name="today_status_taken">Taken</string>
     <string name="today_status_missed">Missed</string>
@@ -130,9 +133,9 @@
     <string name="day_status_regular">Fair</string>
     <string name="day_status_bad">Needs work</string>
     <string name="day_message_no_doses">There are no doses scheduled for this date.</string>
-    <string name="day_message_good">Great: you have %1$d%% adherence today.</string>
-    <string name="day_message_regular">Good pace: %1$d%% adherence. You can improve a little more.</string>
-    <string name="day_message_bad">You are below target today: adherence is %1$d%%. Review the pending doses to catch up.</string>
+    <string name="day_message_good">Day adherence: %1$d%%. Looking good.</string>
+    <string name="day_message_regular">Day adherence: %1$d%%. You are doing well.</string>
+    <string name="day_message_bad">Day adherence: %1$d%%. Review the pending doses.</string>
     <string name="today_taken_status_cd">The %1$s dose at %2$s is already marked as taken.</string>
     <string name="today_mark_taken_for_cd">Mark the %1$s dose at %2$s as taken.</string>
 
@@ -144,8 +147,11 @@
     <string name="medications_edit_item_cd">Edit %1$s</string>
     <string name="medications_delete_item_cd">Delete %1$s</string>
     <string name="medications_restock_item_cd">Add quantity to %1$s</string>
-    <string name="medications_stock_remaining">You have %1$s of %2$s left</string>
+    <string name="medications_stock_remaining">Stock: %1$s of %2$s available</string>
     <string name="medications_stock_progress_cd">Available quantity: %1$s</string>
+    <string name="medications_delete_confirm_title">Delete medication</string>
+    <string name="medications_delete_confirm_message">Are you sure you want to delete %1$s?</string>
+    <string name="medications_delete_confirm_action">Delete</string>
     <string name="medications_restock_title">Add quantity: %1$s</string>
     <string name="medications_restock_message">Add units to the current available quantity for this medication.</string>
     <string name="medications_restock_amount_label">Quantity to add</string>
@@ -166,8 +172,10 @@
     <string name="add_medication_stock_remaining_hint">Optional when creating. If it is empty, it will be equal to the initial quantity.</string>
     <string name="add_medication_low_stock_threshold_label">Warn when only a few units remain</string>
     <string name="add_medication_schedule_label">Frequency</string>
-    <string name="add_medication_time_label">Time (example: 08:00)</string>
+    <string name="add_medication_time_label">Time</string>
     <string name="add_medication_start_time_label">Start time</string>
+    <string name="add_medication_time_placeholder">Tap to select a time</string>
+    <string name="add_medication_start_time_placeholder">Tap to select the start time</string>
     <string name="add_medication_days_label">Select the days</string>
     <string name="add_medication_interval_label">Every how many hours (1–24)</string>
     <string name="add_medication_save">Save</string>
@@ -216,9 +224,10 @@
 for today</string>
     <string name="simple_mode_pending">Pending</string>
     <string name="simple_mode_taken_section">Taken</string>
-    <string name="simple_mode_taken_button">Taken</string>
+    <string name="simple_mode_taken_button">Confirm dose</string>
     <string name="simple_mode_taken_cd">Taken</string>
     <string name="simple_mode_pending_count">Pending: %1$d</string>
+    <string name="simple_mode_missed_count">Missed: %1$d</string>
     <string name="simple_mode_taken_summary">Taken today: %1$d</string>
 
     <string name="permission_rationale_title">Medication notifications</string>
@@ -290,6 +299,8 @@ Scheduled time: %3$s</string>
     <string name="insights_filter_stock">Supply</string>
     <string name="insights_filter_positive">Positive</string>
     <string name="insight_action_seen">Hide notice</string>
+    <string name="insight_hidden_message">Alert hidden</string>
+    <string name="insight_hidden_undo">Undo</string>
     <string name="insight_action_review_schedule">Review schedule</string>
     <string name="insight_type_critical">Critical</string>
     <string name="insight_type_warning">Warning</string>

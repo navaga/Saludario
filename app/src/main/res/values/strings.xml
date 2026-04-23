@@ -46,7 +46,7 @@
     <string name="onboarding_legal_title">Aviso importante</string>
     <string name="onboarding_legal_body">Saludario es una herramienta de apoyo personal. No ofrece consejos médicos, diagnósticos ni tratamientos. No sustituye la atención profesional. Consulta siempre a un médico ante dudas de salud.</string>
     <string name="onboarding_legal_checkbox">Entiendo y acepto que esta app es una herramienta de ayuda y no un servicio médico.</string>
-    <string name="onboarding_start_now">Empezar ahora</string>
+    <string name="onboarding_start_now">Continuar</string>
     <string name="onboarding_back">Atrás</string>
     <string name="onboarding_accept_continue">Aceptar y continuar</string>
 
@@ -72,8 +72,8 @@
     <string name="health_detail_placeholder">Aquí podrás ver y gestionar los registros de %1$s.</string>
     <string name="health_add_record_title">Nuevo registro</string>
     <string name="health_label_value">Valor</string>
-    <string name="health_label_systolic">Sistólica</string>
-    <string name="health_label_diastolic">Diastólica</string>
+    <string name="health_label_systolic">Máxima</string>
+    <string name="health_label_diastolic">Mínima</string>
     <string name="health_label_unit">Unidad</string>
     <string name="health_label_notes_optional">Notas (opcional)</string>
     <string name="health_error_invalid_value">Introduce un valor válido</string>
@@ -95,6 +95,8 @@
     <string name="health_filter_selected_date">Filtrado: %1$s</string>
     <string name="health_pick_date_filter_cd">Elegir fecha en calendario</string>
     <string name="health_clear_date_filter_cd">Quitar filtro de fecha</string>
+    <string name="health_day_today">Hoy</string>
+    <string name="health_day_yesterday">Ayer</string>
     <string name="health_previous_records_empty_filtered">No hay registros para la fecha seleccionada.</string>
     <string name="health_quick_last_10_title">Vista rápida: últimos 10 días</string>
     <string name="health_quick_chart_title">Mini gráfico</string>
@@ -115,6 +117,7 @@
     <string name="today_simple_mode_tooltip">Prueba el modo simple: texto más grande y botones más fáciles para quien necesite una interfaz más accesible.</string>
     <string name="today_mark_not_taken">Marcar como no tomado</string>
     <string name="today_mark_taken">Marcar como tomado</string>
+    <string name="today_mark_taken_button">Marcar como tomada</string>
     <string name="today_status_pending">Pendiente</string>
     <string name="today_status_taken">Tomada</string>
     <string name="today_status_missed">Olvidada</string>
@@ -134,9 +137,9 @@
     <string name="day_status_regular">Regular</string>
     <string name="day_status_bad">Por mejorar</string>
     <string name="day_message_no_doses">No hay dosis programadas para esta fecha.</string>
-    <string name="day_message_good">Muy bien: llevas un %1$d%% de adherencia hoy.</string>
-    <string name="day_message_regular">Buen ritmo: %1$d%% de adherencia. Puedes mejorar un poco más.</string>
-    <string name="day_message_bad">Hoy vas por debajo de lo previsto: llevas un %1$d%% de adherencia. Revisa las dosis pendientes para ponerte al día.</string>
+    <string name="day_message_good">Adherencia del día: %1$d%%. Muy bien.</string>
+    <string name="day_message_regular">Adherencia del día: %1$d%%. Vas bien.</string>
+    <string name="day_message_bad">Adherencia del día: %1$d%%. Revisa las dosis pendientes.</string>
     <string name="today_taken_status_cd">La toma de %1$s de las %2$s ya está marcada como tomada.</string>
     <string name="today_mark_taken_for_cd">Marcar la toma de %1$s de las %2$s como tomada.</string>
 
@@ -149,8 +152,11 @@
     <string name="medications_edit_item_cd">Editar %1$s</string>
     <string name="medications_delete_item_cd">Eliminar %1$s</string>
     <string name="medications_restock_item_cd">Añadir cantidad a %1$s</string>
-    <string name="medications_stock_remaining">Te quedan %1$s de %2$s</string>
+    <string name="medications_stock_remaining">Stock: %1$s de %2$s disponibles</string>
     <string name="medications_stock_progress_cd">Cantidad disponible: %1$s</string>
+    <string name="medications_delete_confirm_title">Eliminar medicamento</string>
+    <string name="medications_delete_confirm_message">¿Seguro que quieres eliminar %1$s?</string>
+    <string name="medications_delete_confirm_action">Eliminar</string>
     <string name="medications_restock_title">Añadir cantidad: %1$s</string>
     <string name="medications_restock_message">Añade unidades a la cantidad disponible actual de este medicamento.</string>
     <string name="medications_restock_amount_label">Cantidad a añadir</string>
@@ -172,8 +178,10 @@
     <string name="add_medication_stock_remaining_hint">Opcional al crear. Si está vacío, será igual a la cantidad inicial.</string>
     <string name="add_medication_low_stock_threshold_label">Avisar cuando queden pocas unidades</string>
     <string name="add_medication_schedule_label">Frecuencia</string>
-    <string name="add_medication_time_label">Hora (ej: 08:00)</string>
+    <string name="add_medication_time_label">Hora</string>
     <string name="add_medication_start_time_label">Hora de inicio</string>
+    <string name="add_medication_time_placeholder">Toca para seleccionar una hora</string>
+    <string name="add_medication_start_time_placeholder">Toca para seleccionar la hora de inicio</string>
     <string name="add_medication_days_label">Selecciona los días</string>
     <string name="add_medication_interval_label">Cada cuántas horas (1–24)</string>
     <string name="add_medication_save">Guardar</string>
@@ -227,9 +235,10 @@
     <string name="simple_mode_empty">No hay medicinas\npara hoy</string>
     <string name="simple_mode_pending">Pendientes</string>
     <string name="simple_mode_taken_section">Tomadas</string>
-    <string name="simple_mode_taken_button">Tomada</string>
+    <string name="simple_mode_taken_button">Confirmar toma</string>
     <string name="simple_mode_taken_cd">Tomada</string>
     <string name="simple_mode_pending_count">Pendientes: %1$d</string>
+    <string name="simple_mode_missed_count">Olvidadas: %1$d</string>
     <string name="simple_mode_taken_summary">Tomadas hoy: %1$d</string>
 
     <!-- Notification Permission Dialogs -->
@@ -305,6 +314,8 @@
     <string name="insights_filter_stock">Cantidad</string>
     <string name="insights_filter_positive">Positivos</string>
     <string name="insight_action_seen">Ocultar aviso</string>
+    <string name="insight_hidden_message">Aviso ocultado</string>
+    <string name="insight_hidden_undo">Deshacer</string>
     <string name="insight_action_review_schedule">Revisar horario</string>
     <string name="insight_type_critical">Crítico</string>
     <string name="insight_type_warning">Aviso</string>

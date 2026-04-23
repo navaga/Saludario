@@ -2,6 +2,7 @@ package com.ignaciovalero.saludario.ui.health
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,7 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
@@ -74,6 +78,8 @@ fun HealthDetailScreen(
     var unitMenuExpanded by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<HealthRecord?>(null) }
     var selectedHistoryDate by remember { mutableStateOf<LocalDate?>(null) }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val locale = LocalConfiguration.current.locales[0]
     val filteredRecords = remember(uiState.records, selectedHistoryDate) {
         uiState.records.filter { record ->
@@ -133,6 +139,7 @@ fun HealthDetailScreen(
                                 )
                             },
                             singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             isError = uiState.primaryError != null,
                             supportingText = uiState.primaryError?.let { errorRes ->
                                 { Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error) }
@@ -146,6 +153,7 @@ fun HealthDetailScreen(
                                 onValueChange = onSecondaryValueChange,
                                 label = { Text(stringResource(R.string.health_label_diastolic)) },
                                 singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 isError = uiState.secondaryError != null,
                                 supportingText = uiState.secondaryError?.let { errorRes ->
                                     { Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error) }
@@ -162,7 +170,6 @@ fun HealthDetailScreen(
                                     label = { Text(stringResource(R.string.health_label_unit)) },
                                     singleLine = true,
                                     readOnly = true,
-                                    enabled = false,
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -230,7 +237,11 @@ fun HealthDetailScreen(
                         )
 
                         Button(
-                            onClick = onSave,
+                            onClick = {
+                                focusManager.clearFocus(force = true)
+                                keyboardController?.hide()
+                                onSave()
+                            },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(text = stringResource(R.string.health_save_button))
@@ -338,7 +349,7 @@ private fun QuickLastTenDaysSection(
     type: HealthRecordType,
     records: List<HealthRecord>
 ) {
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     val byDate = records.groupBy { it.recordedAt.toLocalDate() }
     val lastTenDates = byDate.keys
         .sortedDescending()
@@ -496,7 +507,7 @@ private fun HealthRecordItem(
     record: HealthRecord,
     onDeleteClick: () -> Unit
 ) {
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", locale)
 
     Card(
@@ -570,12 +581,13 @@ private fun formatNumericValue(value: Double): String {
     return if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 }
 
+@Composable
 private fun dayLabel(date: LocalDate, locale: Locale): String {
     val today = LocalDate.now()
     val yesterday = today.minusDays(1)
     return when (date) {
-        today -> "Hoy"
-        yesterday -> "Ayer"
+        today -> stringResource(R.string.health_day_today)
+        yesterday -> stringResource(R.string.health_day_yesterday)
         else -> date
             .format(DateTimeFormatter.ofPattern("EEEE d MMMM", locale))
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }

@@ -157,6 +157,7 @@ fun DayScreen(
         dayStatus == DayAdherenceStatus.REGULAR -> stringResource(R.string.day_message_regular, adherencePercent)
         else -> stringResource(R.string.day_message_bad, adherencePercent)
     }
+    val showStatusBadge = totalDoses > 0
 
     var showDatePicker by remember { mutableStateOf(false) }
 
@@ -285,7 +286,7 @@ fun DayScreen(
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Column(modifier = Modifier.padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg)) {
+            Column(modifier = Modifier.padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -296,18 +297,27 @@ fun DayScreen(
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    Text(
-                        text = stringResource(R.string.day_summary_percent, adherencePercent),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    if (showStatusBadge) {
+                        Box(
+                            modifier = Modifier
+                                .background(statusContainerColor, RoundedCornerShape(8.dp))
+                                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+                        ) {
+                            Text(
+                                text = dayStatusLabel,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = statusContentColor,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.height(AppSpacing.sm))
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(8.dp)
+                        .height(6.dp)
                         .semantics {
                             contentDescription = context.getString(
                                 R.string.day_summary_progress_cd,
@@ -318,32 +328,14 @@ fun DayScreen(
                     trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.height(AppSpacing.sm))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = smartSummaryMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Spacer(modifier = Modifier.width(AppSpacing.sm))
-                    Box(
-                        modifier = Modifier
-                            .background(statusContainerColor, RoundedCornerShape(8.dp))
-                            .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
-                    ) {
-                        Text(
-                            text = dayStatusLabel,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = statusContentColor,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
+                Text(
+                    text = smartSummaryMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
 
@@ -522,6 +514,11 @@ private fun ScheduledMedicationCard(
         ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onError
         ScheduledDoseStatus.TAKEN -> takenAccentColor
     }
+    val actionLabel = when (item.status) {
+        ScheduledDoseStatus.TAKEN -> ""
+        ScheduledDoseStatus.PENDING,
+        ScheduledDoseStatus.MISSED -> stringResource(R.string.today_mark_taken_button)
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -624,10 +621,9 @@ private fun ScheduledMedicationCard(
                     ScheduledDoseStatus.TAKEN -> Triple("", Color.Transparent, Color.Transparent)
                 }
 
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     Box(
                         modifier = Modifier
@@ -649,9 +645,11 @@ private fun ScheduledMedicationCard(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             onToggle()
                         },
-                        modifier = Modifier.semantics {
-                            contentDescription = markTakenDescription
-                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics {
+                                contentDescription = markTakenDescription
+                            },
                         enabled = canTakeAction,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = actionContainerColor,
@@ -666,7 +664,7 @@ private fun ScheduledMedicationCard(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = stringResource(R.string.simple_mode_taken_button))
+                        Text(text = actionLabel)
                     }
                 }
             }

@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import com.ignaciovalero.saludario.R
 import java.time.Instant
@@ -39,7 +40,7 @@ fun HealthDateFilterBar(
     modifier: Modifier = Modifier
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
 
     Row(
         modifier = modifier.fillMaxWidth(),

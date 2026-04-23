@@ -26,12 +26,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -68,9 +70,10 @@ fun SimpleModeScreen(
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
-    val pending = uiState.scheduledItems.filterNot { it.isTaken }
+    val pending = uiState.scheduledItems.filter { it.isPending }
+    val missed = uiState.scheduledItems.filter { it.isMissed }
     val taken = uiState.scheduledItems.filter { it.isTaken }
-    val takenCount = uiState.scheduledItems.count { it.isTaken }
+    val takenCount = taken.size
 
     Column(
         modifier = modifier
@@ -123,17 +126,35 @@ fun SimpleModeScreen(
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
                 modifier = Modifier.fillMaxSize()
             ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.simple_mode_pending_count, pending.size),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                if (pending.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.simple_mode_pending_count, pending.size),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    items(pending, key = { "p_${it.medicationId}_${it.time}" }) { item ->
+                        SimpleMedicationCard(
+                            item = item,
+                            onConfirm = { onConfirmTaken(item.medicationId, item.time) }
+                        )
+                    }
                 }
 
-                if (pending.isNotEmpty()) {
-                    items(pending, key = { "p_${it.medicationId}_${it.time}" }) { item ->
+                if (missed.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.simple_mode_missed_count, missed.size),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    items(missed, key = { "m_${it.medicationId}_${it.time}" }) { item ->
                         SimpleMedicationCard(
                             item = item,
                             onConfirm = { onConfirmTaken(item.medicationId, item.time) }
@@ -183,6 +204,21 @@ private fun SimpleMedicationCard(
         ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onError
         else -> MaterialTheme.colorScheme.onPrimary
     }
+    val statusLabel = when (item.status) {
+        ScheduledDoseStatus.TAKEN -> stringResource(R.string.today_status_taken)
+        ScheduledDoseStatus.MISSED -> stringResource(R.string.today_status_missed)
+        ScheduledDoseStatus.PENDING -> stringResource(R.string.today_status_pending)
+    }
+    val statusContainerColor = when (item.status) {
+        ScheduledDoseStatus.TAKEN -> MaterialTheme.colorScheme.primaryContainer
+        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.errorContainer
+        ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.secondaryContainer
+    }
+    val statusContentColor = when (item.status) {
+        ScheduledDoseStatus.TAKEN -> MaterialTheme.colorScheme.onPrimaryContainer
+        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onErrorContainer
+        ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.onSecondaryContainer
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -215,6 +251,12 @@ private fun SimpleMedicationCard(
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
+                )
+
+                SimpleStatusBadge(
+                    label = statusLabel,
+                    containerColor = statusContainerColor,
+                    contentColor = statusContentColor
                 )
             }
 
@@ -263,6 +305,28 @@ private fun SimpleMedicationCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SimpleStatusBadge(
+    label: String,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(999.dp),
+        color = containerColor
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs)
+        )
     }
 }
 

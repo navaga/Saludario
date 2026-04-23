@@ -1,6 +1,7 @@
 package com.ignaciovalero.saludario.ui.onboarding
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
@@ -27,7 +33,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,9 +44,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
@@ -48,6 +57,7 @@ import com.ignaciovalero.saludario.ui.theme.AppSpacing
 fun OnboardingScreen(
     uiState: OnboardingUiState,
     onSelectLanguage: (String) -> Unit,
+    onPageSelected: (Int) -> Unit,
     onNext: () -> Unit,
     onBack: () -> Unit,
     onAcceptedDisclaimerChange: (Boolean) -> Unit,
@@ -55,6 +65,19 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier
 ) {
     var languageExpanded by remember { mutableStateOf(false) }
+    val pagerState = rememberPagerState(initialPage = uiState.page, pageCount = { 2 })
+
+    LaunchedEffect(uiState.page) {
+        if (pagerState.currentPage != uiState.page) {
+            pagerState.animateScrollToPage(uiState.page)
+        }
+    }
+
+    LaunchedEffect(pagerState.settledPage) {
+        if (pagerState.settledPage != uiState.page) {
+            onPageSelected(pagerState.settledPage)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -70,53 +93,65 @@ fun OnboardingScreen(
             )
             .safeDrawingPadding()
             .padding(AppSpacing.lg),
-        verticalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.lg)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box {
-                    OutlinedButton(onClick = { languageExpanded = !languageExpanded }) {
-                        Icon(
-                            imageVector = Icons.Default.Language,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = uiState.languageCode.uppercase())
-                    }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box {
+                OutlinedButton(onClick = { languageExpanded = !languageExpanded }) {
+                    Icon(
+                        imageVector = Icons.Default.Language,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(text = uiState.languageCode.uppercase())
+                }
 
-                    androidx.compose.material3.DropdownMenu(
-                        expanded = languageExpanded,
-                        onDismissRequest = { languageExpanded = false }
-                    ) {
-                        androidx.compose.material3.DropdownMenuItem(
-                            text = { Text(stringResource(R.string.language_option_spanish)) },
-                            onClick = {
-                                onSelectLanguage("es")
-                                languageExpanded = false
-                            }
-                        )
-                        androidx.compose.material3.DropdownMenuItem(
-                            text = { Text(stringResource(R.string.language_option_english)) },
-                            onClick = {
-                                onSelectLanguage("en")
-                                languageExpanded = false
-                            }
-                        )
-                    }
+                androidx.compose.material3.DropdownMenu(
+                    expanded = languageExpanded,
+                    onDismissRequest = { languageExpanded = false }
+                ) {
+                    androidx.compose.material3.DropdownMenuItem(
+                        text = { Text(stringResource(R.string.language_option_spanish)) },
+                        onClick = {
+                            onSelectLanguage("es")
+                            languageExpanded = false
+                        }
+                    )
+                    androidx.compose.material3.DropdownMenuItem(
+                        text = { Text(stringResource(R.string.language_option_english)) },
+                        onClick = {
+                            onSelectLanguage("en")
+                            languageExpanded = false
+                        }
+                    )
                 }
             }
+        }
 
-            if (uiState.page == 0) {
-                FirstPage()
-            } else {
-                SecondPage(
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) { page ->
+            when (page) {
+                0 -> FirstPage(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                )
+
+                else -> SecondPage(
                     accepted = uiState.acceptedDisclaimer,
-                    onAcceptedChange = onAcceptedDisclaimerChange
+                    onAcceptedChange = onAcceptedDisclaimerChange,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                 )
             }
         }
@@ -126,9 +161,15 @@ fun OnboardingScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                IndicatorDot(active = uiState.page == 0)
+                IndicatorDot(
+                    active = uiState.page == 0,
+                    onClick = { onPageSelected(0) }
+                )
                 Spacer(modifier = Modifier.size(10.dp))
-                IndicatorDot(active = uiState.page == 1)
+                IndicatorDot(
+                    active = uiState.page == 1,
+                    onClick = { onPageSelected(1) }
+                )
             }
 
             if (uiState.page == 0) {
@@ -160,60 +201,80 @@ fun OnboardingScreen(
 }
 
 @Composable
-private fun FirstPage() {
-    Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
+private fun FirstPage(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(84.dp)
-            )
-        }
+        OnboardingHeroIcon(icon = Icons.Default.Favorite)
         Text(
             text = stringResource(R.string.onboarding_welcome_title),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
 
-        OnboardingInfoCard(
-            icon = Icons.Default.CheckCircle,
-            title = stringResource(R.string.onboarding_feature_1_title),
-            body = stringResource(R.string.onboarding_feature_1_body)
-        )
-        OnboardingInfoCard(
-            icon = Icons.Default.MonitorHeart,
-            title = stringResource(R.string.onboarding_feature_2_title),
-            body = stringResource(R.string.onboarding_feature_2_body)
-        )
-        OnboardingInfoCard(
-            icon = Icons.Default.Security,
-            title = stringResource(R.string.onboarding_feature_3_title),
-            body = stringResource(R.string.onboarding_feature_3_body)
-        )
-        Text(
-            text = stringResource(R.string.onboarding_language_future_hint),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        ) {
+            OnboardingInfoCard(
+                icon = Icons.Default.CheckCircle,
+                title = stringResource(R.string.onboarding_feature_1_title),
+                body = stringResource(R.string.onboarding_feature_1_body)
+            )
+            OnboardingInfoCard(
+                icon = Icons.Default.MonitorHeart,
+                title = stringResource(R.string.onboarding_feature_2_title),
+                body = stringResource(R.string.onboarding_feature_2_body)
+            )
+            OnboardingInfoCard(
+                icon = Icons.Default.Security,
+                title = stringResource(R.string.onboarding_feature_3_title),
+                body = stringResource(R.string.onboarding_feature_3_body)
+            )
+        }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Text(
+                text = stringResource(R.string.onboarding_language_future_hint),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AppSpacing.md)
+            )
+        }
     }
 }
 
 @Composable
 private fun SecondPage(
     accepted: Boolean,
-    onAcceptedChange: (Boolean) -> Unit
+    onAcceptedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.md)) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(modifier = Modifier.height(8.dp))
+        OnboardingHeroIcon(icon = Icons.Default.Security)
         Text(
             text = stringResource(R.string.onboarding_legal_title),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Card(
@@ -228,18 +289,46 @@ private fun SecondPage(
             )
         }
 
-        Row(
+        Surface(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
-            Checkbox(
-                checked = accepted,
-                onCheckedChange = onAcceptedChange
-            )
-            Text(
-                text = stringResource(R.string.onboarding_legal_checkbox),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 12.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AppSpacing.md),
+                verticalAlignment = Alignment.Top
+            ) {
+                Checkbox(
+                    checked = accepted,
+                    onCheckedChange = onAcceptedChange
+                )
+                Text(
+                    text = stringResource(R.string.onboarding_legal_checkbox),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingHeroIcon(icon: ImageVector) {
+    Surface(
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+    ) {
+        Box(
+            modifier = Modifier.size(112.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(56.dp)
             )
         }
     }
@@ -247,7 +336,7 @@ private fun SecondPage(
 
 @Composable
 private fun OnboardingInfoCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     body: String
 ) {
@@ -279,10 +368,15 @@ private fun OnboardingInfoCard(
 }
 
 @Composable
-private fun IndicatorDot(active: Boolean) {
+private fun IndicatorDot(
+    active: Boolean,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
-            .size(if (active) 22.dp else 10.dp)
+            .width(if (active) 28.dp else 10.dp)
+            .height(10.dp)
+            .clickable(onClick = onClick)
             .background(
                 color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(999.dp)
