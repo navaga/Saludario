@@ -24,6 +24,22 @@ val releaseKeyAlias = providers.gradleProperty("RELEASE_KEY_ALIAS")
 val releaseKeyPassword = providers.gradleProperty("RELEASE_KEY_PASSWORD")
     .orElse(providers.environmentVariable("RELEASE_KEY_PASSWORD"))
     .orNull
+val releaseAdMobAppId = providers.gradleProperty("RELEASE_ADMOB_APP_ID")
+    .orElse(providers.environmentVariable("RELEASE_ADMOB_APP_ID"))
+    .orNull
+val releaseGraphInterstitialAdId = providers.gradleProperty("RELEASE_ADMOB_GRAPH_INTERSTITIAL_ID")
+    .orElse(providers.environmentVariable("RELEASE_ADMOB_GRAPH_INTERSTITIAL_ID"))
+    .orNull
+val configuredGraphAdCooldownMinutes = providers.gradleProperty("GRAPH_AD_COOLDOWN_MINUTES")
+    .orElse(providers.environmentVariable("GRAPH_AD_COOLDOWN_MINUTES"))
+    .orNull
+    ?.toIntOrNull()
+    ?.coerceAtLeast(1)
+    ?: 180
+
+val testAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
+val testGraphInterstitialAdId = "ca-app-pub-3940256099942544/1033173712"
+val releaseUsesTestAdIds = releaseAdMobAppId.isNullOrBlank() || releaseGraphInterstitialAdId.isNullOrBlank()
 
 val keystoreProps = Properties()
 val keystorePropsFile = rootProject.file("keystore.properties")
@@ -54,6 +70,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["adMobAppId"] = testAdMobAppId
+        buildConfigField("int", "DEFAULT_GRAPH_AD_COOLDOWN_MINUTES", configuredGraphAdCooldownMinutes.toString())
     }
 
     signingConfigs {
@@ -68,7 +86,20 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders["adMobAppId"] = testAdMobAppId
+            buildConfigField("String", "ADMOB_GRAPH_INTERSTITIAL_ID", "\"$testGraphInterstitialAdId\"")
+            buildConfigField("boolean", "USE_TEST_ADS", "true")
+        }
+
         release {
+            manifestPlaceholders["adMobAppId"] = releaseAdMobAppId ?: testAdMobAppId
+            buildConfigField(
+                "String",
+                "ADMOB_GRAPH_INTERSTITIAL_ID",
+                "\"${releaseGraphInterstitialAdId ?: testGraphInterstitialAdId}\""
+            )
+            buildConfigField("boolean", "USE_TEST_ADS", releaseUsesTestAdIds.toString())
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = if (!storeFilePath.isNullOrBlank()) {
@@ -88,6 +119,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -110,6 +142,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.vico.compose)
     implementation(libs.vico.compose.m3)
+    implementation(libs.google.mobile.ads)
+    implementation(libs.google.ump)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.firebase.analytics.ktx)
@@ -126,4 +160,8 @@ dependencies {
 
 if (!hasGoogleServicesConfig) {
     logger.warn("google-services.json no encontrado en app/. Firebase Crashlytics quedará desactivado en runtime.")
+}
+
+if (releaseUsesTestAdIds) {
+    logger.warn("RELEASE_ADMOB_APP_ID o RELEASE_ADMOB_GRAPH_INTERSTITIAL_ID no configurados. release usara IDs de prueba de AdMob.")
 }

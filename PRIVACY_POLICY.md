@@ -1,6 +1,6 @@
 # Politica de Privacidad de Saludario
 
-Ultima actualizacion: 22 de abril de 2026
+Ultima actualizacion: 23 de abril de 2026
 
 ## 1. Quien presta el servicio
 
@@ -16,6 +16,7 @@ La app puede tratar estas categorias de informacion:
 - Datos introducidos por la persona usuaria en el dispositivo, como medicamentos, dosis, horarios, stock y registros de salud.
 - Preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.
 - Datos tecnicos y de uso limitados mediante Firebase Analytics y Firebase Crashlytics, cuando esos servicios esten habilitados en la version publicada.
+- Datos tecnicos y de consentimiento vinculados a Google Mobile Ads SDK y User Messaging Platform (UMP), cuando una version publicada habilite anuncios en la app.
 - Notificaciones locales con informacion de medicacion, si la persona usuaria concede el permiso de notificaciones.
 
 ## 3. Donde se guardan los datos
@@ -43,6 +44,11 @@ La app integra los siguientes servicios de Google Firebase en la version publica
 - Firebase Analytics: mide eventos tecnicos y de uso basicos de la aplicacion.
 - Firebase Crashlytics: registra fallos y diagnosticos tecnicos.
 
+En versiones que habiliten anuncios, la app tambien puede integrar:
+
+- Google Mobile Ads SDK: para mostrar un anuncio ocasional al acceder a determinadas graficas de salud.
+- Google User Messaging Platform (UMP): para gestionar el consentimiento y las opciones de privacidad relacionadas con anuncios cuando la normativa aplicable lo requiera.
+
 Estos servicios tratan informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.
 
 Firebase / Google:
@@ -56,7 +62,7 @@ Saludario solicita actualmente el permiso de notificaciones para poder mostrar r
 - Notificaciones: se usan para recordatorios de toma y avisos de stock.
 - En pantalla bloqueada, la app intenta mostrar una vista privada y generica de la notificacion, sin exponer el nombre del medicamento ni la dosis en la previsualizacion publica.
 
-La version release preparada para publicacion no solicita Advertising ID como permiso de la app.
+La implementacion actual mantiene Advertising ID fuera del manifiesto de la app. Aun asi, cualquier version publicada con anuncios debe revisarse antes del envio a Google Play para asegurar que la declaracion de Seguridad de los datos coincide con el comportamiento final del SDK.
 
 ## 7. Lo que la app no hace
 
@@ -74,6 +80,7 @@ La persona usuaria puede:
 - Conceder o denegar el permiso de notificaciones.
 - Desactivar notificaciones desde los ajustes del sistema.
 - Cambiar idioma y otras preferencias dentro de la app.
+- Revisar las opciones de privacidad relacionadas con anuncios desde Ajustes, cuando esa entrada sea necesaria o este disponible.
 - Borrar los datos de la app desde Android o desinstalarla para eliminar el almacenamiento local del dispositivo.
 
 ## 9. Conservacion y eliminacion de datos

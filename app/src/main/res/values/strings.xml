@@ -31,6 +31,15 @@
     <string name="settings_privacy_title">Política de privacidad</string>
     <string name="settings_privacy_description">Consulta dentro de la app cómo se gestionan los datos y las notificaciones.</string>
     <string name="settings_open_privacy_policy">Ver política de privacidad</string>
+    <string name="settings_ads_title">Anuncios y privacidad</string>
+    <string name="settings_ads_description">La versión gratuita puede mostrar un anuncio ocasional al abrir una gráfica. Nunca se muestra en Hoy, formularios, notificaciones ni modo simple.</string>
+    <string name="settings_ads_consent_unknown">Consentimiento publicitario: pendiente de revisar</string>
+    <string name="settings_ads_consent_required">Consentimiento publicitario: requiere elección</string>
+    <string name="settings_ads_consent_not_required">Consentimiento publicitario: no es necesario</string>
+    <string name="settings_ads_consent_obtained">Consentimiento publicitario: configurado</string>
+    <string name="settings_ads_privacy_options">Revisar opciones de privacidad</string>
+    <string name="settings_ads_privacy_options_unavailable">No hay opciones de privacidad adicionales disponibles ahora mismo.</string>
+    <string name="settings_ads_privacy_updated">Opciones de privacidad actualizadas</string>
     <string name="language_option_spanish">Español (ES)</string>
     <string name="language_option_english">English (EN)</string>
     <string name="today_settings_cd">Abrir ajustes</string>

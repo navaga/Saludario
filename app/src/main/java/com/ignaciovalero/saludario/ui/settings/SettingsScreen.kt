@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.data.ads.AdConsentStatus
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
 import kotlinx.coroutines.flow.collectLatest
 
@@ -58,6 +59,7 @@ fun SettingsScreen(
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
+    onOpenAdPrivacyOptions: () -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -296,6 +298,40 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Text(
+                    text = stringResource(R.string.settings_ads_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = stringResource(R.string.settings_ads_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = when (uiState.adConsentStatus) {
+                        AdConsentStatus.REQUIRED -> stringResource(R.string.settings_ads_consent_required)
+                        AdConsentStatus.NOT_REQUIRED -> stringResource(R.string.settings_ads_consent_not_required)
+                        AdConsentStatus.OBTAINED -> stringResource(R.string.settings_ads_consent_obtained)
+                        AdConsentStatus.UNKNOWN -> stringResource(R.string.settings_ads_consent_unknown)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (uiState.adPrivacyOptionsRequired) {
+                    OutlinedButton(
+                        onClick = onOpenAdPrivacyOptions,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = stringResource(R.string.settings_ads_privacy_options))
+                    }
+                } else {
+                    Text(
+                        text = stringResource(R.string.settings_ads_privacy_options_unavailable),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 Button(
                     onClick = onOpenPrivacyPolicy,
                     modifier = Modifier.fillMaxWidth()

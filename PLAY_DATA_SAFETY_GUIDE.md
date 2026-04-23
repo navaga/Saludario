@@ -1,6 +1,6 @@
 # Guia Practica de Data Safety para Google Play
 
-Ultima revision: 22 de abril de 2026
+Ultima revision: 23 de abril de 2026
 
 ## 1. Alcance de esta guia
 
@@ -11,6 +11,7 @@ Situacion observada en el repo:
 - La app usa Firebase Crashlytics.
 - La app usa Firebase Analytics.
 - La app registra al menos un evento tecnico de arranque de aplicacion.
+- La app integra Google Mobile Ads SDK y User Messaging Platform (UMP) con IDs de prueba para desarrollo del flujo de anuncios y consentimiento.
 - La app no usa autenticacion, backend propio, API REST propia ni sincronizacion funcional de medicacion o registros de salud.
 - Los datos funcionales principales de medicacion y salud se guardan localmente en el dispositivo.
 - La release final ya no incluye permisos AD_ID ni AdServices en el manifiesto fusionado.
@@ -34,6 +35,8 @@ SDK directos observados en el proyecto:
 
 - Firebase Crashlytics.
 - Firebase Analytics.
+- Google Mobile Ads SDK.
+- Google User Messaging Platform (UMP).
 
 SDK transitivos o relacionados que Firebase pide tener en cuenta en su documentacion:
 
@@ -61,6 +64,9 @@ Con la configuracion actual, lo prudente es revisar al menos estas categorias en
 - Device or other IDs:
   - Identificadores por instalacion o equivalentes usados por Firebase Installations / Crashlytics / Analytics.
 
+- Si la version publicada activa anuncios reales:
+  - Revisar la divulgacion especifica de Google Mobile Ads SDK segun el modo de servicio real del anuncio y el consentimiento obtenido con UMP.
+
 ## 4.2 Datos compartidos
 
 Base sugerida para revisar con criterio legal:
@@ -74,8 +80,9 @@ Los fines mas coherentes con el estado actual del repo son:
 
 - App functionality: para recordatorios, estabilidad y operativa tecnica de la app.
 - Analytics: por el uso de Firebase Analytics.
+- Advertising: solo si la version publicada sustituye los IDs de prueba y habilita anuncios reales con Google Mobile Ads.
 
-No deberias marcar publicidad personalizada ni advertising con el estado actual del proyecto, salvo que en consola hayais activado algo adicional fuera del repo que cambie este escenario.
+No marques publicidad personalizada por defecto si no puedes demostrar que el modo real de servicio y el consentimiento implementado se corresponden exactamente con esa declaracion.
 
 ## 4.4 Encriptacion en transito
 
@@ -92,9 +99,9 @@ Aqui hay que ser estricto:
 ## 5. Lo que puedes contestar con bastante confianza hoy
 
 - La app no requiere cuenta.
-- La app no muestra anuncios.
-- La release final no solicita Advertising ID.
-- La app usa Firebase Crashlytics y Firebase Analytics.
+- La implementacion actual usa IDs de prueba para anuncios; antes de publicar con monetizacion real deben sustituirse por IDs reales y revisarse de nuevo las declaraciones.
+- La release final sigue removiendo Advertising ID del manifiesto de la app.
+- La app usa Firebase Crashlytics, Firebase Analytics, Google Mobile Ads SDK y UMP.
 - Los datos de medicacion y salud del uso principal permanecen en almacenamiento local del dispositivo.
 
 ## 6. Lo que debes revisar manualmente antes de enviar el formulario
@@ -110,7 +117,8 @@ Si tuviera que resumir el punto de partida actual para Play Console, seria este:
 
 - Marca que hay recopilacion tecnica vinculada a Firebase.
 - No describas la app como si subiera historiales de salud a un backend propio, porque el repo no muestra eso.
-- No marques Ads ni Advertising ID.
+- Si publicas una version con anuncios reales, marca que la app contiene anuncios y revisa la divulgacion oficial de Google Mobile Ads SDK antes de enviar el formulario.
+- Mantén una revision separada de Advertising ID: el manifiesto actual lo elimina, pero debes comprobar el artefacto final publicado.
 - Revisa con cuidado las categorias Crash logs, Diagnostics, App activity y Device or other IDs.
 
 ## 8. Importante

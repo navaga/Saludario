@@ -41,7 +41,7 @@ class HealthGraphViewModel(
                 HealthGraphViewModel(
                     type = type,
                     repository = app.container.healthRecordRepository,
-                    accessPolicy = HealthGraphAccessPolicy()
+                    accessPolicy = app.container.healthGraphAccessPolicy
                 )
             }
         }

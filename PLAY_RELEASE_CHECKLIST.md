@@ -1,6 +1,6 @@
 # Checklist de Publicacion en Google Play
 
-Ultima revision tecnica: 22 de abril de 2026
+Ultima revision tecnica: 23 de abril de 2026
 
 ## 1. Estado tecnico del proyecto
 
@@ -43,8 +43,8 @@ Revisar y completar:
 
 - Privacy policy: usar la URL publica del documento final.
 - App access: marcar que no requiere cuenta, si ese sigue siendo el comportamiento final.
-- Ads: marcar que la app no muestra anuncios, si ese sigue siendo el comportamiento final.
-- Data safety: revisar Firebase Analytics y Crashlytics antes de responder. No responder como si no hubiera recopilacion tecnica.
+- Ads: si la version publicada habilita monetizacion real, marcar que la app muestra anuncios.
+- Data safety: revisar Firebase Analytics, Crashlytics, Google Mobile Ads SDK y UMP antes de responder. No responder como si no hubiera recopilacion tecnica.
 - Content rating: completar cuestionario real segun la funcionalidad.
 - Target audience: no marcar ninos si la app no esta dirigida especificamente a ellos.
 - Health disclaimer: mantener claro que la app es una herramienta de apoyo y no un servicio medico.
@@ -56,7 +56,16 @@ El codigo actual sugiere esta situacion funcional:
 - Los datos de medicacion y salud se guardan localmente en el dispositivo.
 - La app usa Firebase Analytics y Firebase Crashlytics.
 - La app envia al menos un evento tecnico de arranque de aplicacion.
-- La app no solicita Advertising ID en la release final.
+- La app integra Google Mobile Ads SDK y UMP para el MVP de anuncios en graficas.
+- La app sigue removiendo Advertising ID del manifiesto, pero hay que verificar el artefacto final antes de enviar.
+
+Antes de publicar una version con anuncios reales:
+
+- Sustituye los IDs de prueba de AdMob por IDs reales.
+- Configura RELEASE_ADMOB_APP_ID y RELEASE_ADMOB_GRAPH_INTERSTITIAL_ID para que la release no herede los IDs de prueba.
+- Ajusta GRAPH_AD_COOLDOWN_MINUTES si quieres un cooldown distinto del valor por defecto.
+- Valida el flujo de consentimiento UMP en una build release.
+- Revisa de nuevo el manifiesto fusionado y la divulgacion de Seguridad de los datos.
 
 Antes de enviar el formulario, revisa la documentacion oficial de Firebase y responde de forma coherente con tu configuracion real en produccion.
 
@@ -70,6 +79,7 @@ Probar en al menos un dispositivo real o emulador representativo:
 - Recordatorios, posponer y marcar toma desde notificacion.
 - Stock bajo y aviso correspondiente.
 - Flujos de Medicamentos, Hoy, Insights y Salud.
+- Acceso a graficas con consentimiento UMP y cooldown del anuncio.
 - Comportamiento en segundo plano tras reinicio del dispositivo.
 - Verificar en un dispositivo real que la pantalla bloqueada muestra solo la vista privada y generica de las notificaciones.
 

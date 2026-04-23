@@ -29,6 +29,10 @@ import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.data.local.entity.HealthRecord
 import com.ignaciovalero.saludario.data.local.entity.HealthRecordType
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
+import com.patrykandpatrick.vico.compose.axis.axisGuidelineComponent
+import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
+import com.patrykandpatrick.vico.compose.axis.axisLineComponent
+import com.patrykandpatrick.vico.compose.axis.axisTickComponent
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
@@ -63,6 +67,9 @@ fun HealthEvolutionChart(
     }
     val primaryColor = MaterialTheme.colorScheme.primary
     val secondaryColor = MaterialTheme.colorScheme.tertiary
+    val axisLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val axisLineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
+    val axisGuidelineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
     val latestRecord = if (type == HealthRecordType.BLOOD_PRESSURE) {
         ordered.lastOrNull()?.takeIf { it.secondaryValue != null }
     } else {
@@ -126,6 +133,10 @@ fun HealthEvolutionChart(
             }
         )
     }
+    val axisLabel = axisLabelComponent(color = axisLabelColor)
+    val axisLine = axisLineComponent(color = axisLineColor, dynamicShader = null)
+    val axisTick = axisTickComponent(color = axisLineColor, dynamicShader = null)
+    val axisGuideline = axisGuidelineComponent(color = axisGuidelineColor, dynamicShader = null)
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -156,8 +167,17 @@ fun HealthEvolutionChart(
             Chart(
                 chart = chart,
                 model = model,
-                startAxis = rememberStartAxis(),
+                startAxis = rememberStartAxis(
+                    label = axisLabel,
+                    axis = axisLine,
+                    tick = axisTick,
+                    guideline = axisGuideline
+                ),
                 bottomAxis = rememberBottomAxis(
+                    label = axisLabel,
+                    axis = axisLine,
+                    tick = axisTick,
+                    guideline = axisGuideline,
                     valueFormatter = bottomAxisValueFormatter,
                     itemPlacer = bottomAxisItemPlacer
                 ),

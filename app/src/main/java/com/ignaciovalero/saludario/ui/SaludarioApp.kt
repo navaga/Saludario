@@ -19,7 +19,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -29,8 +31,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.SaludarioApplication
 import com.ignaciovalero.saludario.ui.addmedication.AddMedicationScreen
 import com.ignaciovalero.saludario.ui.addmedication.AddMedicationViewModel
+import com.ignaciovalero.saludario.core.android.findActivity
 import com.ignaciovalero.saludario.data.local.entity.HealthRecordType
 import com.ignaciovalero.saludario.ui.health.HealthDetailScreen
 import com.ignaciovalero.saludario.ui.health.HealthDetailViewModel
@@ -59,6 +64,7 @@ import com.ignaciovalero.saludario.ui.tutorial.TutorialScreen
 import com.ignaciovalero.saludario.ui.tutorial.TutorialViewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.coroutines.launch
 
 @Composable
 fun SaludarioApp() {
@@ -121,6 +127,11 @@ private fun SimpleModeContent(onExitSimpleMode: () -> Unit) {
 private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
     val navController = rememberNavController()
     val tutorialViewModel: TutorialViewModel = viewModel(factory = TutorialViewModel.Factory)
+    val context = LocalContext.current
+    val app = context.applicationContext as SaludarioApplication
+    val monetizationManager = remember(app) { app.container.monetizationManager }
+    val healthGraphAccessPolicy = remember(app) { app.container.healthGraphAccessPolicy }
+    val coroutineScope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val snackbarHostState = remember { SnackbarHostState() }
@@ -330,7 +341,21 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                         uiState = healthState,
                         type = type,
                         onBack = { navController.popBackStack() },
-                        onOpenGraph = { navController.navigate(Screen.HealthGraph.createRoute(type.name)) },
+                        onOpenGraph = {
+                            val route = Screen.HealthGraph.createRoute(type.name)
+                            val activity = context.findActivity()
+
+                            if (activity == null) {
+                                navController.navigate(route) { launchSingleTop = true }
+                            } else {
+                                coroutineScope.launch {
+                                    if (healthGraphAccessPolicy.shouldShowGraphEntryAd(type)) {
+                                        monetizationManager.maybeShowGraphEntryAd(activity)
+                                    }
+                                    navController.navigate(route) { launchSingleTop = true }
+                                }
+                            }
+                        },
                         onDeleteRecord = viewModel::deleteRecord,
                         onPrimaryValueChange = viewModel::onPrimaryValueChange,
                         onSecondaryValueChange = viewModel::onSecondaryValueChange,
@@ -401,6 +426,16 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                     snackbarHostState = snackbarHostState,
                     onBack = { navController.popBackStack() },
                     onOpenPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                    onOpenAdPrivacyOptions = {
+                        val activity = context.findActivity() ?: return@SettingsScreen
+                        coroutineScope.launch {
+                            if (monetizationManager.showPrivacyOptionsForm(activity)) {
+                                snackbarHostState.showSnackbar(
+                                    message = context.getString(R.string.settings_ads_privacy_updated)
+                                )
+                            }
+                        }
+                    },
                     contentPadding = innerPadding
                 )
             }

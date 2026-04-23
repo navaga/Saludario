@@ -5,7 +5,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.ignaciovalero.saludario.data.ads.AdConsentStatus
+import com.ignaciovalero.saludario.data.ads.MonetizationConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -29,6 +33,26 @@ class UserPreferencesDataSource(
         prefs[DARK_MODE_ENABLED_KEY]
     }
 
+    val adConsentStatus: Flow<AdConsentStatus> = dataStore.data.map { prefs ->
+        AdConsentStatus.fromStorage(prefs[AD_CONSENT_STATUS_KEY])
+    }
+
+    val adPrivacyOptionsRequired: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[AD_PRIVACY_OPTIONS_REQUIRED_KEY] ?: false
+    }
+
+    val graphAdLastShownAtMillis: Flow<Long?> = dataStore.data.map { prefs ->
+        prefs[GRAPH_AD_LAST_SHOWN_AT_MILLIS_KEY]
+    }
+
+    val graphAdCooldownMinutes: Flow<Int> = dataStore.data.map { prefs ->
+        prefs[GRAPH_AD_COOLDOWN_MINUTES_KEY] ?: DEFAULT_GRAPH_AD_COOLDOWN_MINUTES
+    }
+
+    val isPremiumNoAds: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[PREMIUM_NO_ADS_KEY] ?: false
+    }
+
     suspend fun setSimpleMode(enabled: Boolean) {
         dataStore.edit { prefs ->
             prefs[SIMPLE_MODE_KEY] = enabled
@@ -50,6 +74,46 @@ class UserPreferencesDataSource(
     suspend fun setDarkModeEnabled(enabled: Boolean) {
         dataStore.edit { prefs ->
             prefs[DARK_MODE_ENABLED_KEY] = enabled
+        }
+    }
+
+    suspend fun setAdConsentStatus(status: AdConsentStatus) {
+        dataStore.edit { prefs ->
+            prefs[AD_CONSENT_STATUS_KEY] = status.name
+        }
+    }
+
+    suspend fun setAdPrivacyOptionsRequired(required: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[AD_PRIVACY_OPTIONS_REQUIRED_KEY] = required
+        }
+    }
+
+    suspend fun getGraphAdLastShownAtMillis(): Long? {
+        val prefs = dataStore.data.first()
+        return prefs[GRAPH_AD_LAST_SHOWN_AT_MILLIS_KEY]
+    }
+
+    suspend fun setGraphAdLastShownAtMillis(timestampMillis: Long) {
+        dataStore.edit { prefs ->
+            prefs[GRAPH_AD_LAST_SHOWN_AT_MILLIS_KEY] = timestampMillis
+        }
+    }
+
+    suspend fun getGraphAdCooldownMinutes(): Int {
+        val prefs = dataStore.data.first()
+        return prefs[GRAPH_AD_COOLDOWN_MINUTES_KEY] ?: DEFAULT_GRAPH_AD_COOLDOWN_MINUTES
+    }
+
+    suspend fun setGraphAdCooldownMinutes(minutes: Int) {
+        dataStore.edit { prefs ->
+            prefs[GRAPH_AD_COOLDOWN_MINUTES_KEY] = minutes.coerceAtLeast(1)
+        }
+    }
+
+    suspend fun setPremiumNoAds(enabled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[PREMIUM_NO_ADS_KEY] = enabled
         }
     }
 
@@ -138,7 +202,13 @@ class UserPreferencesDataSource(
         val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
         val PREFERRED_LANGUAGE_KEY = stringPreferencesKey("preferred_language")
         val DARK_MODE_ENABLED_KEY = booleanPreferencesKey("dark_mode_enabled")
+        val AD_CONSENT_STATUS_KEY = stringPreferencesKey("ad_consent_status")
+        val AD_PRIVACY_OPTIONS_REQUIRED_KEY = booleanPreferencesKey("ad_privacy_options_required")
+        val GRAPH_AD_LAST_SHOWN_AT_MILLIS_KEY = longPreferencesKey("graph_ad_last_shown_at_millis")
+        val GRAPH_AD_COOLDOWN_MINUTES_KEY = intPreferencesKey("graph_ad_cooldown_minutes")
+        val PREMIUM_NO_ADS_KEY = booleanPreferencesKey("premium_no_ads")
         const val DEFAULT_LANGUAGE = "es"
+        val DEFAULT_GRAPH_AD_COOLDOWN_MINUTES = MonetizationConfig.defaultGraphAdCooldownMinutes
         const val TUTORIAL_KEY_PREFIX = "tutorial_seen_"
         const val DISMISSED_INSIGHT_KEY_PREFIX = "dismissed_insight_"
         const val LOW_STOCK_NOTIFIED_PREFIX = "low_stock_notified_"

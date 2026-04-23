@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ignaciovalero.saludario.SaludarioApplication
 import com.ignaciovalero.saludario.core.localization.AppLanguageManager
+import com.ignaciovalero.saludario.data.ads.AdConsentStatus
 import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.ui.tutorial.TutorialManager
@@ -24,7 +25,9 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val languageCode: String = AppLanguageManager.DEFAULT_LANGUAGE_CODE,
     val dismissedInsightsCount: Int = 0,
-    val darkModeEnabled: Boolean? = null
+    val darkModeEnabled: Boolean? = null,
+    val adConsentStatus: AdConsentStatus = AdConsentStatus.UNKNOWN,
+    val adPrivacyOptionsRequired: Boolean = false
 )
 
 class SettingsViewModel(
@@ -37,12 +40,16 @@ class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = combine(
         userPreferencesDataSource.preferredLanguageCode,
         userPreferencesDataSource.dismissedInsightKeys(),
-        userPreferencesDataSource.darkModeEnabled
-    ) { languageCode, dismissedInsights, darkModeEnabled ->
+        userPreferencesDataSource.darkModeEnabled,
+        userPreferencesDataSource.adConsentStatus,
+        userPreferencesDataSource.adPrivacyOptionsRequired
+    ) { languageCode, dismissedInsights, darkModeEnabled, adConsentStatus, adPrivacyOptionsRequired ->
         SettingsUiState(
             languageCode = AppLanguageManager.normalizeLanguageCode(languageCode),
             dismissedInsightsCount = dismissedInsights.size,
-            darkModeEnabled = darkModeEnabled
+            darkModeEnabled = darkModeEnabled,
+            adConsentStatus = adConsentStatus,
+            adPrivacyOptionsRequired = adPrivacyOptionsRequired
         )
     }
         .stateIn(

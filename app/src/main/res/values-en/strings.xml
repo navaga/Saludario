@@ -30,6 +30,15 @@
     <string name="settings_privacy_title">Privacy policy</string>
     <string name="settings_privacy_description">Review inside the app how data and notifications are handled.</string>
     <string name="settings_open_privacy_policy">View privacy policy</string>
+    <string name="settings_ads_title">Ads and privacy</string>
+    <string name="settings_ads_description">The free version may show an occasional ad when opening a chart. Ads are never shown in Today, forms, notifications, or simple mode.</string>
+    <string name="settings_ads_consent_unknown">Ad consent: pending review</string>
+    <string name="settings_ads_consent_required">Ad consent: user choice required</string>
+    <string name="settings_ads_consent_not_required">Ad consent: not required</string>
+    <string name="settings_ads_consent_obtained">Ad consent: configured</string>
+    <string name="settings_ads_privacy_options">Review privacy options</string>
+    <string name="settings_ads_privacy_options_unavailable">No additional privacy options are currently available.</string>
+    <string name="settings_ads_privacy_updated">Privacy options updated</string>
     <string name="language_option_spanish">Spanish (ES)</string>
     <string name="language_option_english">English (EN)</string>
     <string name="today_settings_cd">Open settings</string>

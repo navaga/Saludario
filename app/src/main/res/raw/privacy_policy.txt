@@ -13,7 +13,9 @@ La app puede tratar informacion introducida por la persona usuaria en el disposi
 
 Tambien puede guardar preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.
 
-La version publicada puede usar Firebase Analytics y Firebase Crashlytics para analitica tecnica basica y diagnostico de fallos.
+La app puede usar Firebase Analytics y Firebase Crashlytics para analitica tecnica basica y diagnostico de fallos.
+
+Si en una version publicada se habilita la monetizacion, la app puede mostrar un anuncio ocasional al acceder a graficas mediante Google Mobile Ads. La gestion del consentimiento y de las opciones de privacidad relacionadas con publicidad puede apoyarse en User Messaging Platform (UMP) de Google.
 
 DONDE SE GUARDAN LOS DATOS
 
@@ -35,11 +37,13 @@ SERVICIOS DE TERCEROS
 
 La app puede integrar servicios de Google Firebase, como Firebase Analytics y Firebase Crashlytics.
 
+Ademas, en versiones que habiliten anuncios, la app puede integrar Google Mobile Ads SDK y User Messaging Platform (UMP) para gestionar anuncios y consentimiento de privacidad.
+
 Estos servicios pueden tratar informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.
 
 TUS OPCIONES
 
-La persona usuaria puede conceder o denegar el permiso de notificaciones, cambiar idioma y otras preferencias dentro de la app, y borrar los datos locales desde Android o al desinstalar la app.
+La persona usuaria puede conceder o denegar el permiso de notificaciones, cambiar idioma y otras preferencias dentro de la app, revisar las opciones de privacidad relacionadas con anuncios cuando esten disponibles, y borrar los datos locales desde Android o al desinstalar la app.
 
 IMPORTANTE
 

@@ -8,6 +8,7 @@ import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.work.WorkManager
+import com.ignaciovalero.saludario.data.ads.MonetizationManager
 import com.ignaciovalero.saludario.data.local.SaludarioDatabase
 import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
 import com.ignaciovalero.saludario.data.repository.HealthRecordRepositoryImpl
@@ -17,6 +18,7 @@ import com.ignaciovalero.saludario.data.work.AppWorkScheduler
 import com.ignaciovalero.saludario.domain.repository.HealthRecordRepository
 import com.ignaciovalero.saludario.domain.repository.MedicationLogRepository
 import com.ignaciovalero.saludario.domain.repository.MedicationRepository
+import com.ignaciovalero.saludario.ui.health.HealthGraphAccessPolicy
 import java.io.File
 
 interface AppContainer {
@@ -24,6 +26,8 @@ interface AppContainer {
     val medicationRepository: MedicationRepository
     val medicationLogRepository: MedicationLogRepository
     val userPreferencesDataSource: UserPreferencesDataSource
+    val monetizationManager: MonetizationManager
+    val healthGraphAccessPolicy: HealthGraphAccessPolicy
     val workScheduler: AppWorkScheduler
 }
 
@@ -166,6 +170,14 @@ class DefaultAppContainer(
 
     override val userPreferencesDataSource: UserPreferencesDataSource by lazy {
         UserPreferencesDataSource(dataStore)
+    }
+
+    override val monetizationManager: MonetizationManager by lazy {
+        MonetizationManager(userPreferencesDataSource)
+    }
+
+    override val healthGraphAccessPolicy: HealthGraphAccessPolicy by lazy {
+        HealthGraphAccessPolicy(userPreferencesDataSource)
     }
 
     override val workScheduler: AppWorkScheduler by lazy {

@@ -18,6 +18,8 @@ work = "2.10.2"
 datastore = "1.1.7"
 vico = "1.13.1"
 firebaseBom = "33.13.0"
+googleMobileAds = "25.2.0"
+googleUmp = "4.0.0"
 googleServices = "4.4.2"
 firebaseCrashlyticsGradle = "3.0.3"
 
@@ -51,6 +53,8 @@ vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", ve
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 firebase-analytics-ktx = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
+google-mobile-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "googleMobileAds" }
+google-ump = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "googleUmp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
