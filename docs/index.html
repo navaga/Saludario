@@ -183,8 +183,8 @@
                 <ul>
                     <li>Datos introducidos por la persona usuaria en el dispositivo, como medicamentos, dosis, horarios, stock y registros de salud.</li>
                     <li>Preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.</li>
-                    <li>Datos tecnicos y de uso limitados mediante Firebase Analytics y Firebase Crashlytics, cuando esos servicios esten habilitados en la version publicada.</li>
-                    <li>Datos tecnicos y de consentimiento asociados a Google Mobile Ads SDK y User Messaging Platform (UMP), cuando una version publicada habilite anuncios.</li>
+                    <li>Datos tecnicos y de uso limitados mediante Firebase Analytics y Firebase Crashlytics en la version publicada.</li>
+                    <li>Datos tecnicos y de consentimiento asociados a Google Mobile Ads SDK y User Messaging Platform (UMP), ya que la version publicada puede mostrar anuncios al acceder a determinadas graficas de salud.</li>
                     <li>Notificaciones locales con informacion de medicacion si la persona usuaria concede el permiso correspondiente.</li>
                 </ul>
             </section>
@@ -207,17 +207,18 @@
                     <li>Guardar registros de salud introducidos por la persona usuaria.</li>
                     <li>Mantener preferencias de idioma, onboarding y tutoriales.</li>
                     <li>Mejorar estabilidad y funcionamiento tecnico de la app mediante analitica basica y diagnostico de fallos.</li>
+                    <li>Gestionar el consentimiento y mostrar un anuncio ocasional al acceder a determinadas graficas de salud.</li>
                 </ul>
             </section>
 
             <section>
                 <h2>5. Servicios de terceros</h2>
-                <p>La app integra los siguientes servicios de Google Firebase en la version publicada:</p>
+                <p>La version publicada de Saludario integra los siguientes servicios de Google:</p>
                 <ul>
                     <li>Firebase Analytics: mide eventos tecnicos y de uso basicos de la aplicacion.</li>
                     <li>Firebase Crashlytics: registra fallos y diagnosticos tecnicos.</li>
-                    <li>Google Mobile Ads SDK: puede mostrar un anuncio ocasional al acceder a determinadas graficas en versiones que habiliten monetizacion.</li>
-                    <li>User Messaging Platform (UMP): puede gestionar consentimiento y opciones de privacidad relacionadas con anuncios cuando sea necesario.</li>
+                    <li>Google Mobile Ads SDK: puede mostrar un anuncio ocasional al acceder a determinadas graficas de salud.</li>
+                    <li>User Messaging Platform (UMP): gestiona consentimiento y opciones de privacidad relacionadas con anuncios cuando la normativa aplicable lo requiere.</li>
                 </ul>
                 <p>Estos servicios tratan informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.</p>
                 <ul>
@@ -229,7 +230,7 @@
             <section>
                 <h2>6. Permisos y notificaciones</h2>
                 <p>Saludario solicita permiso de notificaciones para poder mostrar recordatorios y avisos relacionados con la medicacion. En pantalla bloqueada intenta mostrar una vista privada y generica de la notificacion para no exponer el nombre del medicamento ni la dosis en la previsualizacion publica.</p>
-                <p>La implementacion actual mantiene Advertising ID fuera del manifiesto de la app, pero cualquier version publicada con anuncios debe revisarse antes del envio a Google Play para asegurar que las declaraciones de privacidad y Seguridad de los datos siguen siendo correctas.</p>
+                <p>La implementacion publicada mantiene Advertising ID fuera del manifiesto de la app, pero la declaracion de privacidad y de Seguridad de los datos debe revisarse antes de cada envio a Google Play para asegurar que sigue coincidiendo con el comportamiento final del SDK.</p>
             </section>
 
             <section>
@@ -249,7 +250,7 @@
                     <li>Conceder o denegar el permiso de notificaciones.</li>
                     <li>Desactivar notificaciones desde los ajustes del sistema.</li>
                     <li>Cambiar idioma y otras preferencias dentro de la app.</li>
-                    <li>Revisar las opciones de privacidad relacionadas con anuncios desde Ajustes, cuando esa entrada este disponible.</li>
+                    <li>Revisar las opciones de privacidad relacionadas con anuncios desde Ajustes.</li>
                     <li>Borrar los datos de la app desde Android o desinstalarla para eliminar el almacenamiento local.</li>
                 </ul>
             </section>
@@ -259,7 +260,7 @@
                 <p>Los datos funcionales de la app se conservan en el dispositivo mientras la persona usuaria no los elimine activamente.</p>
                 <ul>
                     <li>La persona usuaria puede borrar todos los datos desde Ajustes &gt; Aplicaciones &gt; Saludario &gt; Almacenamiento en Android, o desinstalando la app.</li>
-                    <li>Los datos tecnicos tratados por Firebase Analytics y Crashlytics siguen las politicas de retencion propias de Google.</li>
+                    <li>Los datos tecnicos tratados por Firebase Analytics, Crashlytics y los servicios publicitarios de Google siguen las politicas de retencion propias de Google.</li>
                 </ul>
             </section>
 
@@ -270,7 +271,7 @@
 
             <section>
                 <h2>11. Transferencias internacionales</h2>
-                <p>Los datos tecnicos tratados por Firebase Analytics y Firebase Crashlytics pueden ser transferidos y procesados en servidores de Google fuera del Espacio Economico Europeo, conforme a las garantias establecidas en las politicas de privacidad de Google.</p>
+                <p>Los datos tecnicos tratados por Firebase Analytics, Firebase Crashlytics, Google Mobile Ads SDK y UMP pueden ser transferidos y procesados en servidores de Google fuera del Espacio Economico Europeo, conforme a las garantias establecidas en las politicas de privacidad de Google.</p>
             </section>
 
             <section>

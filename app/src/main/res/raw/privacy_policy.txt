@@ -1,49 +1,109 @@
 POLITICA DE PRIVACIDAD
 
+Ultima actualizacion: 23 de abril de 2026
+
+1. QUE ES SALUDARIO
+
 Saludario es una aplicacion de apoyo personal para recordar medicacion y registrar datos de salud. No ofrece diagnostico, tratamiento ni consejo medico.
 
-RESPONSABLE Y CONTACTO
+2. RESPONSABLE Y CONTACTO
 
 Responsable: Ignacio Valero Garcia
 Contacto: Navaga1@gmail.com
 
-QUE DATOS USA LA APP
+3. QUE DATOS PUEDE TRATAR LA APP
 
-La app puede tratar informacion introducida por la persona usuaria en el dispositivo, como medicamentos, dosis, horarios, stock y registros de salud.
+- Datos introducidos por la persona usuaria en el dispositivo, como medicamentos, dosis, horarios, stock y registros de salud.
+- Preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.
+- Datos tecnicos y de uso limitados mediante Firebase Analytics y Firebase Crashlytics en la version publicada.
+- Datos tecnicos y de consentimiento asociados a Google Mobile Ads SDK y User Messaging Platform (UMP), ya que la version publicada puede mostrar anuncios al acceder a determinadas graficas de salud.
+- Notificaciones locales con informacion de medicacion si la persona usuaria concede el permiso correspondiente.
 
-Tambien puede guardar preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.
-
-La app puede usar Firebase Analytics y Firebase Crashlytics para analitica tecnica basica y diagnostico de fallos.
-
-Si en una version publicada se habilita la monetizacion, la app puede mostrar un anuncio ocasional al acceder a graficas mediante Google Mobile Ads. La gestion del consentimiento y de las opciones de privacidad relacionadas con publicidad puede apoyarse en User Messaging Platform (UMP) de Google.
-
-DONDE SE GUARDAN LOS DATOS
+4. DONDE SE GUARDAN LOS DATOS
 
 Los datos funcionales principales de Saludario se guardan localmente en el dispositivo.
 
-La configuracion actual excluye la base de datos local y las preferencias del backup automatico de Android en la nube y en transferencia entre dispositivos.
+- La informacion de medicacion y salud se almacena en una base de datos local del dispositivo.
+- Las preferencias de la app se almacenan localmente.
+- La configuracion actual excluye la base de datos local y las preferencias del backup automatico de Android en la nube y en transferencia entre dispositivos.
 
-PARA QUE SE USAN LOS DATOS
+5. PARA QUE SE USAN LOS DATOS
 
-Los datos se usan para mostrar recordatorios de medicacion, registrar tomas, controlar el stock, guardar registros de salud, mantener preferencias de la app y mejorar estabilidad tecnica.
+- Mostrar y gestionar recordatorios de medicacion.
+- Registrar el estado de las tomas y el stock.
+- Guardar registros de salud introducidos por la persona usuaria.
+- Mantener preferencias de idioma, onboarding y tutoriales.
+- Mejorar estabilidad y funcionamiento tecnico de la app mediante analitica basica y diagnostico de fallos.
+- Gestionar el consentimiento y mostrar un anuncio ocasional al acceder a determinadas graficas de salud.
 
-NOTIFICACIONES Y PRIVACIDAD
+6. SERVICIOS DE TERCEROS
 
-Si la persona usuaria concede el permiso de notificaciones, la app puede mostrar recordatorios y avisos de stock.
+La version publicada de Saludario integra los siguientes servicios de Google:
 
-En pantalla bloqueada, la app intenta mostrar una vista privada y generica de la notificacion para reducir la exposicion de detalles sensibles.
+- Firebase Analytics: mide eventos tecnicos y de uso basicos de la aplicacion.
+- Firebase Crashlytics: registra fallos y diagnosticos tecnicos.
+- Google Mobile Ads SDK: puede mostrar un anuncio ocasional al acceder a determinadas graficas de salud.
+- User Messaging Platform (UMP): gestiona consentimiento y opciones de privacidad relacionadas con anuncios cuando la normativa aplicable lo requiere.
 
-SERVICIOS DE TERCEROS
+Estos servicios tratan informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.
 
-La app puede integrar servicios de Google Firebase, como Firebase Analytics y Firebase Crashlytics.
+Firebase / Google:
+- https://firebase.google.com/support/privacy
+- https://policies.google.com/privacy
 
-Ademas, en versiones que habiliten anuncios, la app puede integrar Google Mobile Ads SDK y User Messaging Platform (UMP) para gestionar anuncios y consentimiento de privacidad.
+7. PERMISOS Y NOTIFICACIONES
 
-Estos servicios pueden tratar informacion tecnica del dispositivo y de la aplicacion conforme a sus propias condiciones y politicas.
+Saludario solicita permiso de notificaciones para poder mostrar recordatorios y avisos relacionados con la medicacion.
 
-TUS OPCIONES
+- Notificaciones: se usan para recordatorios de toma y avisos de stock.
+- En pantalla bloqueada, la app intenta mostrar una vista privada y generica de la notificacion, sin exponer el nombre del medicamento ni la dosis en la previsualizacion publica.
 
-La persona usuaria puede conceder o denegar el permiso de notificaciones, cambiar idioma y otras preferencias dentro de la app, revisar las opciones de privacidad relacionadas con anuncios cuando esten disponibles, y borrar los datos locales desde Android o al desinstalar la app.
+La implementacion publicada mantiene Advertising ID fuera del manifiesto de la app, pero la declaracion de privacidad y de Seguridad de los datos debe revisarse antes de cada envio a Google Play para asegurar que sigue coincidiendo con el comportamiento final del SDK.
+
+8. LO QUE LA APP NO HACE
+
+- No requiere crear una cuenta ni iniciar sesion en su funcionamiento actual.
+- No vende datos personales.
+- No usa camara, microfono ni ubicacion.
+- No esta pensada como plataforma de publicidad.
+- No sincroniza de forma ordinaria los datos de medicacion o salud con un backend propio.
+
+9. OPCIONES DE LA PERSONA USUARIA
+
+- Conceder o denegar el permiso de notificaciones.
+- Desactivar notificaciones desde los ajustes del sistema.
+- Cambiar idioma y otras preferencias dentro de la app.
+- Revisar las opciones de privacidad relacionadas con anuncios desde Ajustes.
+- Borrar los datos de la app desde Android o desinstalarla para eliminar el almacenamiento local.
+
+10. CONSERVACION Y ELIMINACION DE DATOS
+
+Los datos funcionales de la app se conservan en el dispositivo mientras la persona usuaria no los elimine activamente.
+
+- La persona usuaria puede borrar todos los datos desde Ajustes > Aplicaciones > Saludario > Almacenamiento en Android, o desinstalando la app.
+- Los datos tecnicos tratados por Firebase Analytics, Crashlytics y los servicios publicitarios de Google siguen las politicas de retencion propias de Google.
+
+11. SEGURIDAD
+
+Los datos de medicacion y salud se almacenan en la base de datos local del dispositivo, protegida por el sistema operativo Android mediante el aislamiento de aplicaciones. No se transmiten a servidores propios. La persona usuaria es responsable de proteger el acceso fisico a su dispositivo.
+
+12. TRANSFERENCIAS INTERNACIONALES
+
+Los datos tecnicos tratados por Firebase Analytics, Firebase Crashlytics, Google Mobile Ads SDK y UMP pueden ser transferidos y procesados en servidores de Google fuera del Espacio Economico Europeo, conforme a las garantias establecidas en las politicas de privacidad de Google.
+
+13. DERECHOS DE LA PERSONA USUARIA
+
+En relacion con los datos tratados directamente por Saludario, la persona usuaria puede consultarlos, modificarlos y eliminarlos desde el propio dispositivo en cualquier momento.
+
+Para cualquier consulta o ejercicio de derechos relacionados con datos tratados por Firebase / Google, puede contactar con Ignacio Valero Garcia en Navaga1@gmail.com o dirigirse directamente a Google conforme a sus politicas.
+
+14. MENORES DE EDAD
+
+La app no esta disenada especificamente para menores de edad. Si se ofrece a menores, debe hacerse bajo supervision adecuada y conforme a la normativa aplicable.
+
+15. CAMBIOS EN ESTA POLITICA
+
+Esta politica puede actualizarse para reflejar cambios tecnicos, legales o funcionales. La fecha de ultima actualizacion se indicara al inicio del documento.
 
 IMPORTANTE
 

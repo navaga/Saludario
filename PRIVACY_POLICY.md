@@ -15,8 +15,8 @@ La app puede tratar estas categorias de informacion:
 
 - Datos introducidos por la persona usuaria en el dispositivo, como medicamentos, dosis, horarios, stock y registros de salud.
 - Preferencias locales de la app, como idioma, onboarding, tutoriales y estado de alertas de stock.
-- Datos tecnicos y de uso limitados mediante Firebase Analytics y Firebase Crashlytics, cuando esos servicios esten habilitados en la version publicada.
-- Datos tecnicos y de consentimiento vinculados a Google Mobile Ads SDK y User Messaging Platform (UMP), cuando una version publicada habilite anuncios en la app.
+- Datos tecnicos y de uso limitados mediante Firebase Analytics y Firebase Crashlytics en la version publicada.
+- Datos tecnicos y de consentimiento vinculados a Google Mobile Ads SDK y User Messaging Platform (UMP), ya que la version publicada puede mostrar anuncios al acceder a determinadas graficas de salud.
 - Notificaciones locales con informacion de medicacion, si la persona usuaria concede el permiso de notificaciones.
 
 ## 3. Donde se guardan los datos
@@ -36,16 +36,14 @@ Usamos los datos para:
 - Guardar registros de salud introducidos por la persona usuaria.
 - Mantener preferencias de idioma, onboarding y tutoriales.
 - Mejorar estabilidad y funcionamiento tecnico de la app mediante analitica basica y diagnostico de fallos.
+- Gestionar el consentimiento y mostrar un anuncio ocasional al acceder a determinadas graficas de salud.
 
 ## 5. Servicios de terceros
 
-La app integra los siguientes servicios de Google Firebase en la version publicada:
+La version publicada de Saludario integra los siguientes servicios de Google:
 
 - Firebase Analytics: mide eventos tecnicos y de uso basicos de la aplicacion.
 - Firebase Crashlytics: registra fallos y diagnosticos tecnicos.
-
-En versiones que habiliten anuncios, la app tambien puede integrar:
-
 - Google Mobile Ads SDK: para mostrar un anuncio ocasional al acceder a determinadas graficas de salud.
 - Google User Messaging Platform (UMP): para gestionar el consentimiento y las opciones de privacidad relacionadas con anuncios cuando la normativa aplicable lo requiera.
 
@@ -62,7 +60,7 @@ Saludario solicita actualmente el permiso de notificaciones para poder mostrar r
 - Notificaciones: se usan para recordatorios de toma y avisos de stock.
 - En pantalla bloqueada, la app intenta mostrar una vista privada y generica de la notificacion, sin exponer el nombre del medicamento ni la dosis en la previsualizacion publica.
 
-La implementacion actual mantiene Advertising ID fuera del manifiesto de la app. Aun asi, cualquier version publicada con anuncios debe revisarse antes del envio a Google Play para asegurar que la declaracion de Seguridad de los datos coincide con el comportamiento final del SDK.
+La implementacion publicada mantiene Advertising ID fuera del manifiesto de la app. Aun asi, la declaracion de Seguridad de los datos debe revisarse antes de cada envio a Google Play para asegurar que coincide con el comportamiento final del SDK.
 
 ## 7. Lo que la app no hace
 
@@ -80,7 +78,7 @@ La persona usuaria puede:
 - Conceder o denegar el permiso de notificaciones.
 - Desactivar notificaciones desde los ajustes del sistema.
 - Cambiar idioma y otras preferencias dentro de la app.
-- Revisar las opciones de privacidad relacionadas con anuncios desde Ajustes, cuando esa entrada sea necesaria o este disponible.
+- Revisar las opciones de privacidad relacionadas con anuncios desde Ajustes.
 - Borrar los datos de la app desde Android o desinstalarla para eliminar el almacenamiento local del dispositivo.
 
 ## 9. Conservacion y eliminacion de datos
@@ -88,7 +86,7 @@ La persona usuaria puede:
 Los datos funcionales de la app (medicacion, salud, preferencias) se conservan en el dispositivo mientras la persona usuaria no los elimine activamente.
 
 - La persona usuaria puede borrar todos los datos desde Ajustes > Aplicaciones > Saludario > Almacenamiento en Android, o desinstalando la app.
-- Los datos tecnicos tratados por Firebase Analytics y Crashlytics siguen las politicas de retencion propias de Google.
+- Los datos tecnicos tratados por Firebase Analytics, Crashlytics y los servicios publicitarios de Google siguen las politicas de retencion propias de Google.
 
 ## 10. Seguridad
 
@@ -96,7 +94,7 @@ Los datos de medicacion y salud se almacenan en la base de datos local del dispo
 
 ## 11. Transferencias internacionales
 
-Los datos tecnicos tratados por Firebase Analytics y Firebase Crashlytics pueden ser transferidos y procesados en servidores de Google fuera del Espacio Economico Europeo, conforme a las garantias establecidas en las politicas de privacidad de Google.
+Los datos tecnicos tratados por Firebase Analytics, Firebase Crashlytics, Google Mobile Ads SDK y UMP pueden ser transferidos y procesados en servidores de Google fuera del Espacio Economico Europeo, conforme a las garantias establecidas en las politicas de privacidad de Google.
 
 ## 12. Derechos de la persona usuaria
 

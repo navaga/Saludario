@@ -48,9 +48,9 @@ if (keystorePropsFile.exists()) {
 }
 
 val storeFilePath = releaseKeystorePath ?: keystoreProps.getProperty("storeFile")
-val storePassword = releaseStorePassword ?: keystoreProps.getProperty("storePassword")
-val keyAlias = releaseKeyAlias ?: keystoreProps.getProperty("keyAlias")
-val keyPassword = releaseKeyPassword ?: keystoreProps.getProperty("keyPassword")
+val resolvedStorePassword = releaseStorePassword ?: keystoreProps.getProperty("storePassword")
+val resolvedKeyAlias = releaseKeyAlias ?: keystoreProps.getProperty("keyAlias")
+val resolvedKeyPassword = releaseKeyPassword ?: keystoreProps.getProperty("keyPassword")
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
@@ -78,9 +78,9 @@ android {
         create("release") {
             if (!storeFilePath.isNullOrBlank()) {
                 storeFile = file(storeFilePath)
-                this.storePassword = storePassword
-                this.keyAlias = keyAlias
-                this.keyPassword = keyPassword
+                this.storePassword = resolvedStorePassword
+                this.keyAlias = resolvedKeyAlias
+                this.keyPassword = resolvedKeyPassword
             }
         }
     }
