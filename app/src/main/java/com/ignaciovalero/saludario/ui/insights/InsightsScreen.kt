@@ -1,26 +1,22 @@
 package com.ignaciovalero.saludario.ui.insights
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.WarningAmber
@@ -32,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
@@ -43,7 +40,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -52,7 +48,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -188,9 +183,10 @@ fun InsightsScreen(
                 ) {
                     item {
                         InsightsHeader(
+                            allInsights = orderedInsights,
+                            visibleInsights = filteredInsights,
                             selectedFilter = selectedFilter,
-                            onFilterSelected = { selectedFilter = it },
-                            onClearFilters = { selectedFilter = InsightsFilter.ALL }
+                            onFilterSelected = { selectedFilter = it }
                         )
                     }
                     if (filteredInsights.isEmpty()) {
@@ -291,6 +287,7 @@ private fun InsightCard(
 ) {
     val visual = insight.visual()
     val actionLabelRes = insight.primaryActionLabelRes()
+    val dismissCd = stringResource(R.string.insights_dismiss_cd)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -299,17 +296,17 @@ private fun InsightCard(
             containerColor = visual.containerColor,
             contentColor = visual.contentColor
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = AppSpacing.xs)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(AppSpacing.lg),
-            horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                .padding(start = AppSpacing.md, end = AppSpacing.xs, top = AppSpacing.sm, bottom = AppSpacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
             verticalAlignment = Alignment.Top
         ) {
             Surface(
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(36.dp),
                 shape = MaterialTheme.shapes.medium,
                 color = visual.iconContainerColor
             ) {
@@ -318,34 +315,24 @@ private fun InsightCard(
                         imageVector = visual.icon,
                         contentDescription = null,
                         tint = visual.iconColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
 
             Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 2.dp, bottom = AppSpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = insight.medicationName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    InsightTypeBadge(
-                        label = stringResource(visual.labelRes),
-                        color = visual.badgeColor,
-                        onColor = visual.badgeOnColor
-                    )
-                }
+                Text(
+                    text = insight.medicationName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
                 Text(
                     text = insight.message,
@@ -358,36 +345,31 @@ private fun InsightCard(
                     Text(
                         text = extraDetail,
                         style = MaterialTheme.typography.bodySmall,
-                        color = visual.contentColor.copy(alpha = 0.9f)
+                        color = visual.contentColor.copy(alpha = 0.85f)
                     )
                 }
 
                 if (insight.suggestion != null) {
-                    Surface(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = AppSpacing.xs),
-                        shape = MaterialTheme.shapes.small,
-                        color = visual.suggestionBg,
-                        border = BorderStroke(1.dp, visual.suggestionBorder)
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = visual.iconColor,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = insight.suggestion,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = visual.contentColor
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = visual.iconColor,
+                            modifier = Modifier
+                                .size(14.dp)
+                                .padding(top = 3.dp)
+                        )
+                        Text(
+                            text = insight.suggestion,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = visual.contentColor.copy(alpha = 0.85f)
+                        )
                     }
                 }
 
@@ -395,29 +377,31 @@ private fun InsightCard(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = AppSpacing.sm),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(top = AppSpacing.xs),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        TextButton(onClick = onDismiss) {
-                            Text(text = stringResource(R.string.insight_action_seen))
-                        }
-                        Button(onClick = onPrimaryAction) {
+                        TextButton(
+                            onClick = onPrimaryAction,
+                            colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                                contentColor = visual.iconColor
+                            )
+                        ) {
                             Text(text = stringResource(actionLabelRes))
                         }
                     }
-                } else {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = AppSpacing.sm),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = onDismiss) {
-                            Text(text = stringResource(R.string.insight_action_seen))
-                        }
-                    }
                 }
+            }
+
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = dismissCd,
+                    tint = visual.contentColor.copy(alpha = 0.7f),
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
     }
@@ -455,104 +439,109 @@ private fun MedicationInsight.extraDetailText(): String? {
 
 @Composable
 private fun InsightsHeader(
+    allInsights: List<MedicationInsight>,
+    visibleInsights: List<MedicationInsight>,
     selectedFilter: InsightsFilter,
-    onFilterSelected: (InsightsFilter) -> Unit,
-    onClearFilters: () -> Unit
+    onFilterSelected: (InsightsFilter) -> Unit
 ) {
-    val filterListState = rememberLazyListState()
-    val showScrollHint by remember {
-        derivedStateOf {
-            val layoutInfo = filterListState.layoutInfo
-            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisibleItemIndex < InsightsFilter.entries.lastIndex
-        }
-    }
+    val missedCount = allInsights.count { it.type == InsightType.FREQUENTLY_MISSED }
+    val delaysCount = allInsights.count { it.type == InsightType.FREQUENT_DELAYS }
+    val stockCount = allInsights.count { it.type == InsightType.LOW_STOCK }
+    val hasAnyAlert = missedCount + delaysCount + stockCount > 0
 
-    Surface(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        shape = RoundedCornerShape(16.dp)
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
     ) {
-        Column(
-            modifier = Modifier.padding(AppSpacing.lg),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
-        ) {
-            Text(
-                text = stringResource(R.string.insights_title),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = stringResource(R.string.insights_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.insights_filter_label),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold
-                )
-                if (selectedFilter != InsightsFilter.ALL) {
-                    TextButton(onClick = onClearFilters) {
-                        Text(text = stringResource(R.string.insights_clear_filters))
-                    }
-                }
-            }
-            Box(modifier = Modifier.fillMaxWidth()) {
-                LazyRow(
-                    state = filterListState,
-                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
-                    contentPadding = PaddingValues(end = AppSpacing.xl)
-                ) {
-                    items(InsightsFilter.entries, key = { it.name }) { filter ->
-                        FilterChip(
-                            selected = selectedFilter == filter,
-                            onClick = { onFilterSelected(filter) },
-                            label = { Text(text = stringResource(filter.labelRes)) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        )
-                    }
-                }
+        Text(
+            text = stringResource(R.string.insights_title),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = stringResource(R.string.insights_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-                if (showScrollHint) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .width(28.dp)
-                            .fillMaxHeight()
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        MaterialTheme.colorScheme.surfaceContainerLow
-                                    )
+        if (hasAnyAlert) {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = AppSpacing.xs),
+                horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+            ) {
+                if (missedCount > 0) {
+                    item("missed") {
+                        SummaryFilterChip(
+                            text = stringResource(R.string.insights_summary_missed, missedCount),
+                            selected = selectedFilter == InsightsFilter.MISSED,
+                            onClick = {
+                                onFilterSelected(
+                                    if (selectedFilter == InsightsFilter.MISSED) InsightsFilter.ALL
+                                    else InsightsFilter.MISSED
                                 )
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(end = 2.dp)
-                                .size(16.dp)
+                            }
+                        )
+                    }
+                }
+                if (delaysCount > 0) {
+                    item("delays") {
+                        SummaryFilterChip(
+                            text = stringResource(R.string.insights_summary_delays, delaysCount),
+                            selected = selectedFilter == InsightsFilter.DELAYS,
+                            onClick = {
+                                onFilterSelected(
+                                    if (selectedFilter == InsightsFilter.DELAYS) InsightsFilter.ALL
+                                    else InsightsFilter.DELAYS
+                                )
+                            }
+                        )
+                    }
+                }
+                if (stockCount > 0) {
+                    item("stock") {
+                        SummaryFilterChip(
+                            text = stringResource(R.string.insights_summary_low_stock, stockCount),
+                            selected = selectedFilter == InsightsFilter.STOCK,
+                            onClick = {
+                                onFilterSelected(
+                                    if (selectedFilter == InsightsFilter.STOCK) InsightsFilter.ALL
+                                    else InsightsFilter.STOCK
+                                )
+                            }
                         )
                     }
                 }
             }
+        } else {
+            Text(
+                text = stringResource(R.string.insights_summary_all_clear),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = AppSpacing.xs)
+            )
         }
     }
+}
+
+@Composable
+private fun SummaryFilterChip(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    )
 }
 
 @Composable
@@ -607,25 +596,6 @@ private fun InsightsErrorState(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun InsightTypeBadge(
-    label: String,
-    color: Color,
-    onColor: Color
-) {
-    Surface(
-        color = color,
-        contentColor = onColor,
-        shape = MaterialTheme.shapes.small
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
-        )
     }
 }
 

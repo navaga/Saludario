@@ -33,12 +33,13 @@ class AppWorkScheduler(
 
     fun schedulePostponed(
         medicationId: Long,
-        postponeMinutes: Long
+        postponeMinutes: Long,
+        scheduledTimeOriginal: LocalDateTime? = null
     ) {
+        val scheduledTime = scheduledTimeOriginal ?: LocalDateTime.now().plusMinutes(postponeMinutes)
         val data = workDataOf(
             MedicationReminderWorker.KEY_MEDICATION_ID to medicationId,
-            MedicationReminderWorker.KEY_SCHEDULED_TIME to LocalDateTime.now()
-                .plusMinutes(postponeMinutes).toString()
+            MedicationReminderWorker.KEY_SCHEDULED_TIME to scheduledTime.toString()
         )
 
         val request = OneTimeWorkRequestBuilder<MedicationReminderWorker>()
@@ -49,6 +50,16 @@ class AppWorkScheduler(
             .build()
 
         workManager.enqueue(request)
+    }
+
+    /**
+     * Cancela cualquier worker de recordatorio pendiente para una dosis
+     * concreta (usado al posponer desde la UI antes de re-programar).
+     */
+    fun cancelReminderForScheduledTime(medicationId: Long, scheduledTime: LocalDateTime) {
+        workManager.cancelUniqueWork(
+            uniqueWorkName(medicationId, scheduledTime.toLocalTime().toString())
+        )
     }
 
     fun scheduleNextDose(medication: MedicationEntity) {

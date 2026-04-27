@@ -2,6 +2,8 @@ PRIVACY POLICY
 
 Saludario is a personal support app for medication reminders and health record tracking. It does not provide diagnosis, treatment, or medical advice.
 
+Last updated: April 27, 2026
+
 OWNER AND CONTACT
 
 Owner: Ignacio Valero Garcia
@@ -23,7 +25,7 @@ The current configuration excludes the local database and app preferences from A
 
 WHY DATA IS USED
 
-Data is used to show medication reminders, record doses, manage stock, save health records, keep app preferences, and improve technical stability.
+Data is used to show medication reminders, record doses, manage stock, save health records, keep app preferences, display informational reference-range indicators on health charts (these are indicative only and do not constitute medical advice), and improve technical stability.
 
 NOTIFICATIONS AND PRIVACY
 

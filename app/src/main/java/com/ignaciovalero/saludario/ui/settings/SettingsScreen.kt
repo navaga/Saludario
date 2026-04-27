@@ -60,6 +60,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onOpenAdPrivacyOptions: () -> Unit,
+    onOpenReliability: () -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
@@ -100,6 +101,8 @@ fun SettingsScreen(
                 }
             }
         )
+
+        ReliabilityEntryCard(onClick = onOpenReliability)
 
         Card(
             modifier = Modifier
@@ -339,6 +342,72 @@ fun SettingsScreen(
                     Text(text = stringResource(R.string.settings_open_privacy_policy))
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ReliabilityEntryCard(onClick: () -> Unit) {
+    val context = LocalContext.current
+    // Snapshot recalculado en cada recomposición. Suficiente para mostrar
+    // el estado al entrar; si el usuario cambia un permiso desde el sistema
+    // y vuelve, la pantalla se recompone (collectAsState provoca refresh).
+    val status = remember(context) {
+        com.ignaciovalero.saludario.core.permissions.ReminderReliability.snapshot(context)
+    }
+    val statusText = if (status.allOk) {
+        stringResource(R.string.settings_reliability_entry_status_ok)
+    } else {
+        stringResource(R.string.settings_reliability_entry_status_ko, status.issueCount)
+    }
+    val statusColor = if (status.allOk) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.error
+    }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.sm)
+            .toggleable(
+                value = false,
+                role = Role.Button,
+                onValueChange = { onClick() }
+            ),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_reliability_entry_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = statusText,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = statusColor
+                )
+            }
+            Text(
+                text = stringResource(R.string.settings_reliability_entry_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

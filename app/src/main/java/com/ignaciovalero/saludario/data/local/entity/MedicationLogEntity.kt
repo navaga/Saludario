@@ -30,12 +30,15 @@ data class MedicationLogEntity(
     @ColumnInfo(name = "taken_time")
     val takenTime: LocalDateTime? = null,
     @ColumnInfo(name = "status")
-    val status: MedicationStatus
+    val status: MedicationStatus,
+    @ColumnInfo(name = "postponed_until")
+    val postponedUntil: LocalDateTime? = null
 )
 
 enum class MedicationStatus {
     PENDING,
     TAKEN,
     SKIPPED,
-    MISSED
+    MISSED,
+    POSTPONED
 }

@@ -140,6 +140,17 @@ class AddMedicationViewModel(
 
     fun save() {
         val current = _uiState.value
+        if (!validateAndUpdateErrors(current)) return
+
+        val plan = buildSavePlan(current)
+        persistAndScheduleReminders(current.editingId, plan)
+    }
+
+    /**
+     * Calcula los errores de validación para el estado actual y los publica.
+     * Devuelve `true` si el formulario es válido y se puede continuar.
+     */
+    private fun validateAndUpdateErrors(current: AddMedicationUiState): Boolean {
         val nameError = validateName(current.name)
         val dosageError = validateDosage(current.dosage)
         val stockTotalError = validateOptionalNonNegativeDecimal(current.stockTotal)
@@ -152,18 +163,32 @@ class AddMedicationViewModel(
         val daysError = validateDays(current.scheduleType, current.selectedDays)
         val intervalError = validateInterval(current.scheduleType, current.intervalHours)
 
-        _uiState.update { it.copy(
-            nameError = nameError,
-            dosageError = dosageError,
-            stockTotalError = stockTotalError,
-            stockRemainingError = stockRemainingError,
-            lowStockThresholdError = lowStockThresholdError,
-            timeError = timeError,
-            daysError = daysError,
-            intervalError = intervalError
-        ) }
-        if (_uiState.value.hasErrors) return
+        _uiState.update {
+            it.copy(
+                nameError = nameError,
+                dosageError = dosageError,
+                stockTotalError = stockTotalError,
+                stockRemainingError = stockRemainingError,
+                lowStockThresholdError = lowStockThresholdError,
+                timeError = timeError,
+                daysError = daysError,
+                intervalError = intervalError
+            )
+        }
+        return !_uiState.value.hasErrors
+    }
 
+    /**
+     * Plan derivado del estado validado, listo para persistir.
+     * Aísla los cálculos puros (parsing, horarios, días) de la operación
+     * de I/O.
+     */
+    private data class SavePlan(
+        val entity: MedicationEntity,
+        val times: List<LocalTime>
+    )
+
+    private fun buildSavePlan(current: AddMedicationUiState): SavePlan {
         val dosageValue = current.dosage.toDouble()
         val stockTotalValue = current.stockTotal.parseDecimalOrZero()
         val stockRemainingValue = if (current.stockRemaining.isBlank()) {
@@ -193,56 +218,41 @@ class AddMedicationViewModel(
             null
         }
 
+        val entity = MedicationEntity(
+            id = current.editingId ?: 0L,
+            name = current.name.trim(),
+            dosage = dosageValue,
+            unit = current.unit,
+            scheduleType = scheduleType,
+            times = times,
+            startDate = current.startDate,
+            endDate = current.endDate,
+            specificDays = specificDays,
+            intervalHours = intervalHours,
+            stockTotal = stockTotalValue,
+            stockRemaining = stockRemainingValue,
+            lowStockThreshold = lowStockThresholdValue
+        )
+        return SavePlan(entity = entity, times = times)
+    }
+
+    private fun persistAndScheduleReminders(editingId: Long?, plan: SavePlan) {
         viewModelScope.launch {
             try {
-                val editingId = current.editingId
-                if (editingId != null) {
-                    val entity = MedicationEntity(
-                        id = editingId,
-                        name = current.name.trim(),
-                        dosage = dosageValue,
-                        unit = current.unit,
-                        scheduleType = scheduleType,
-                        times = times,
-                        startDate = current.startDate,
-                        endDate = current.endDate,
-                        specificDays = specificDays,
-                        intervalHours = intervalHours,
-                        stockTotal = stockTotalValue,
-                        stockRemaining = stockRemainingValue,
-                        lowStockThreshold = lowStockThresholdValue
-                    )
-                    medicationRepository.update(entity)
+                val medicationId = if (editingId != null) {
+                    medicationRepository.update(plan.entity)
                     workScheduler.cancelMedicationReminders(editingId)
-                    workScheduler.scheduleMedicationReminders(
-                        medicationId = editingId,
-                        times = times
-                    )
+                    editingId
                 } else {
-                    val id = medicationRepository.insert(
-                        MedicationEntity(
-                            name = current.name.trim(),
-                            dosage = dosageValue,
-                            unit = current.unit,
-                            scheduleType = scheduleType,
-                            times = times,
-                            startDate = current.startDate,
-                            endDate = current.endDate,
-                            specificDays = specificDays,
-                            intervalHours = intervalHours,
-                            stockTotal = stockTotalValue,
-                            stockRemaining = stockRemainingValue,
-                            lowStockThreshold = lowStockThresholdValue
-                        )
-                    )
-                    workScheduler.scheduleMedicationReminders(
-                        medicationId = id,
-                        times = times
-                    )
+                    medicationRepository.insert(plan.entity)
                 }
+                workScheduler.scheduleMedicationReminders(
+                    medicationId = medicationId,
+                    times = plan.times
+                )
                 _uiState.update { it.copy(isSaved = true) }
             } catch (e: Exception) {
-                val msgRes = if (current.editingId != null) R.string.msg_error_update
+                val msgRes = if (editingId != null) R.string.msg_error_update
                              else R.string.msg_error_save
                 _uiState.update { it.copy(userMessage = msgRes) }
             }

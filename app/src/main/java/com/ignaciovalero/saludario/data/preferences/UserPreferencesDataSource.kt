@@ -197,6 +197,18 @@ class UserPreferencesDataSource(
         }
     }
 
+    /** Timestamp (epoch millis) en el que el usuario descartó el banner de
+     *  fiabilidad de recordatorios. `null` si no lo ha descartado nunca. */
+    val reminderReliabilityBannerDismissedAtMillis: Flow<Long?> = dataStore.data.map { prefs ->
+        prefs[REMINDER_RELIABILITY_BANNER_DISMISSED_AT_KEY]
+    }
+
+    suspend fun setReminderReliabilityBannerDismissedAtMillis(timestampMillis: Long) {
+        dataStore.edit { prefs ->
+            prefs[REMINDER_RELIABILITY_BANNER_DISMISSED_AT_KEY] = timestampMillis
+        }
+    }
+
     private companion object {
         val SIMPLE_MODE_KEY = booleanPreferencesKey("simple_mode")
         val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
@@ -207,6 +219,8 @@ class UserPreferencesDataSource(
         val GRAPH_AD_LAST_SHOWN_AT_MILLIS_KEY = longPreferencesKey("graph_ad_last_shown_at_millis")
         val GRAPH_AD_COOLDOWN_MINUTES_KEY = intPreferencesKey("graph_ad_cooldown_minutes")
         val PREMIUM_NO_ADS_KEY = booleanPreferencesKey("premium_no_ads")
+        val REMINDER_RELIABILITY_BANNER_DISMISSED_AT_KEY =
+            longPreferencesKey("reminder_reliability_banner_dismissed_at")
         const val DEFAULT_LANGUAGE = "es"
         val DEFAULT_GRAPH_AD_COOLDOWN_MINUTES = MonetizationConfig.defaultGraphAdCooldownMinutes
         const val TUTORIAL_KEY_PREFIX = "tutorial_seen_"

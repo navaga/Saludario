@@ -1,6 +1,6 @@
 # Politica de Privacidad de Saludario
 
-Ultima actualizacion: 23 de abril de 2026
+Ultima actualizacion: 27 de abril de 2026
 
 ## 1. Quien presta el servicio
 
@@ -34,6 +34,7 @@ Usamos los datos para:
 - Mostrar y gestionar recordatorios de medicacion.
 - Registrar el estado de las tomas y el stock.
 - Guardar registros de salud introducidos por la persona usuaria.
+- Mostrar indicadores visuales orientativos de rangos de referencia en las graficas de salud. Estos rangos son meramente informativos y no constituyen diagnostico medico.
 - Mantener preferencias de idioma, onboarding y tutoriales.
 - Mejorar estabilidad y funcionamiento tecnico de la app mediante analitica basica y diagnostico de fallos.
 - Gestionar el consentimiento y mostrar un anuncio ocasional al acceder a determinadas graficas de salud.

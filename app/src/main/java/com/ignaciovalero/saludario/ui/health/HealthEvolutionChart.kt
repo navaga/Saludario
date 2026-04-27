@@ -79,7 +79,8 @@ fun HealthEvolutionChart(
     val primaryColorArgb = primaryColor.toArgb()
     val secondaryColorArgb = secondaryColor.toArgb()
 
-    val zones = type.healthZones()
+    val zones = type.healthZones(unit = ordered.lastOrNull()?.unit ?: defaultUnitFor(type))
+    val orientativeNote = if (zones.isNotEmpty()) stringResource(R.string.health_zone_orientative_note) else null
     val decorations: List<Decoration> = zones.map { zone ->
         ThresholdLine(
             thresholdRange = zone.min..zone.max,
@@ -110,6 +111,14 @@ fun HealthEvolutionChart(
             if (hasSingleDay) "HH:mm" else if (ordered.size <= 6) "d MMM" else "d/M",
             locale
         )
+        val firstIndexByDay = if (!hasSingleDay) {
+            buildMap<java.time.LocalDate, Int> {
+                ordered.forEachIndexed { idx, r ->
+                    val d = r.recordedAt.toLocalDate()
+                    if (!containsKey(d)) put(d, idx)
+                }
+            }
+        } else emptyMap()
         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ ->
             val index = value.toInt()
             if (index !in ordered.indices || value != index.toFloat()) {
@@ -119,7 +128,8 @@ fun HealthEvolutionChart(
                 if (hasSingleDay) {
                     record.recordedAt.toLocalTime().format(formatter)
                 } else {
-                    record.recordedAt.toLocalDate().format(formatter)
+                    val day = record.recordedAt.toLocalDate()
+                    if (firstIndexByDay[day] == index) day.format(formatter) else ""
                 }
             }
         }
@@ -163,6 +173,19 @@ fun HealthEvolutionChart(
             }
             if (zones.isNotEmpty()) {
                 ZoneLegend(zones = zones)
+            }
+            if (type == HealthRecordType.BLOOD_PRESSURE) {
+                BloodPressureLegend(
+                    primaryColor = primaryColor,
+                    secondaryColor = secondaryColor
+                )
+            }
+            if (orientativeNote != null) {
+                Text(
+                    text = orientativeNote,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             Chart(
                 chart = chart,
@@ -285,102 +308,102 @@ private data class HealthZone(
 )
 
 private fun formatHealthValue(value: Double): String {
-    return if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
+    return when {
+        value % 1.0 == 0.0 -> value.toInt().toString()
+        else -> String.format(java.util.Locale.getDefault(), "%.1f", value)
+    }
 }
 
-private fun HealthRecordType.healthZones(): List<HealthZone> = when (this) {
-    HealthRecordType.GLUCOSE -> listOf(
-        HealthZone(
-            "< 70 mg/dL (hipoglucemia)",
-            0f, 70f,
-            android.graphics.Color.argb(55, 33, 150, 243),
-            android.graphics.Color.argb(255, 21, 101, 192)
-        ),
-        HealthZone(
-            "70-130 mg/dL (normal)",
-            70f, 130f,
-            android.graphics.Color.argb(55, 76, 175, 80),
-            android.graphics.Color.argb(255, 46, 125, 50)
-        ),
-        HealthZone(
-            "130-180 mg/dL (elevado)",
-            130f, 180f,
-            android.graphics.Color.argb(55, 255, 152, 0),
-            android.graphics.Color.argb(255, 230, 81, 0)
-        ),
-        HealthZone(
-            "> 180 mg/dL (peligroso)",
-            180f, 700f,
-            android.graphics.Color.argb(55, 244, 67, 54),
-            android.graphics.Color.argb(255, 183, 28, 28)
+private fun defaultUnitFor(type: HealthRecordType): String = when (type) {
+    HealthRecordType.BLOOD_PRESSURE -> "mmHg"
+    HealthRecordType.GLUCOSE -> "mg/dL"
+    HealthRecordType.WEIGHT -> "kg"
+    HealthRecordType.HEART_RATE -> "bpm"
+    HealthRecordType.TEMPERATURE -> "°C"
+    HealthRecordType.OXYGEN_SATURATION -> "%"
+    HealthRecordType.CUSTOM -> ""
+}
+
+private val ColorBlueFill = android.graphics.Color.argb(55, 33, 150, 243)
+private val ColorBlueLegend = android.graphics.Color.argb(255, 21, 101, 192)
+private val ColorGreenFill = android.graphics.Color.argb(55, 76, 175, 80)
+private val ColorGreenLegend = android.graphics.Color.argb(255, 46, 125, 50)
+private val ColorAmberFill = android.graphics.Color.argb(55, 255, 152, 0)
+private val ColorAmberLegend = android.graphics.Color.argb(255, 230, 81, 0)
+private val ColorRedFill = android.graphics.Color.argb(55, 244, 67, 54)
+private val ColorRedLegend = android.graphics.Color.argb(255, 183, 28, 28)
+
+private fun zoneLabel(name: String, range: String): String = "$name · $range"
+
+@Composable
+private fun HealthRecordType.healthZones(unit: String): List<HealthZone> {
+    val low = stringResource(R.string.health_zone_low)
+    val normal = stringResource(R.string.health_zone_normal)
+    val elevated = stringResource(R.string.health_zone_elevated)
+    val high = stringResource(R.string.health_zone_high)
+    val criticalLow = stringResource(R.string.health_zone_critical_low)
+    val u = unit.trim().lowercase()
+
+    return when (this) {
+        HealthRecordType.GLUCOSE -> {
+            val mmol = u.contains("mmol")
+            if (mmol) listOf(
+                HealthZone(zoneLabel(low, "< 3.9 mmol/L"), 0f, 3.9f, ColorBlueFill, ColorBlueLegend),
+                HealthZone(zoneLabel(normal, "3.9–7.2 mmol/L"), 3.9f, 7.2f, ColorGreenFill, ColorGreenLegend),
+                HealthZone(zoneLabel(elevated, "7.2–10.0 mmol/L"), 7.2f, 10f, ColorAmberFill, ColorAmberLegend),
+                HealthZone(zoneLabel(high, "> 10.0 mmol/L"), 10f, 40f, ColorRedFill, ColorRedLegend)
+            ) else listOf(
+                HealthZone(zoneLabel(low, "< 70 mg/dL"), 0f, 70f, ColorBlueFill, ColorBlueLegend),
+                HealthZone(zoneLabel(normal, "70–130 mg/dL"), 70f, 130f, ColorGreenFill, ColorGreenLegend),
+                HealthZone(zoneLabel(elevated, "130–180 mg/dL"), 130f, 180f, ColorAmberFill, ColorAmberLegend),
+                HealthZone(zoneLabel(high, "> 180 mg/dL"), 180f, 700f, ColorRedFill, ColorRedLegend)
+            )
+        }
+        HealthRecordType.BLOOD_PRESSURE -> emptyList()
+        HealthRecordType.HEART_RATE -> listOf(
+            HealthZone(zoneLabel(low, "< 60 bpm"), 0f, 60f, ColorBlueFill, ColorBlueLegend),
+            HealthZone(zoneLabel(normal, "60–100 bpm"), 60f, 100f, ColorGreenFill, ColorGreenLegend),
+            HealthZone(zoneLabel(high, "> 100 bpm"), 100f, 300f, ColorRedFill, ColorRedLegend)
         )
-    )
-    HealthRecordType.BLOOD_PRESSURE -> emptyList()
-    HealthRecordType.HEART_RATE -> listOf(
-        HealthZone(
-            "< 60 lpm (bradicardia)",
-            0f, 60f,
-            android.graphics.Color.argb(55, 33, 150, 243),
-            android.graphics.Color.argb(255, 21, 101, 192)
-        ),
-        HealthZone(
-            "60-100 lpm (normal)",
-            60f, 100f,
-            android.graphics.Color.argb(55, 76, 175, 80),
-            android.graphics.Color.argb(255, 46, 125, 50)
-        ),
-        HealthZone(
-            "> 100 lpm (taquicardia)",
-            100f, 300f,
-            android.graphics.Color.argb(55, 244, 67, 54),
-            android.graphics.Color.argb(255, 183, 28, 28)
+        HealthRecordType.OXYGEN_SATURATION -> listOf(
+            HealthZone(zoneLabel(criticalLow, "< 90%"), 0f, 90f, ColorRedFill, ColorRedLegend),
+            HealthZone(zoneLabel(low, "90–95%"), 90f, 95f, ColorAmberFill, ColorAmberLegend),
+            HealthZone(zoneLabel(normal, "95–100%"), 95f, 100f, ColorGreenFill, ColorGreenLegend)
         )
-    )
-    HealthRecordType.OXYGEN_SATURATION -> listOf(
-        HealthZone(
-            "< 90% (peligro crítico)",
-            0f, 90f,
-            android.graphics.Color.argb(55, 244, 67, 54),
-            android.graphics.Color.argb(255, 183, 28, 28)
-        ),
-        HealthZone(
-            "90-95% (nivel bajo)",
-            90f, 95f,
-            android.graphics.Color.argb(55, 255, 152, 0),
-            android.graphics.Color.argb(255, 230, 81, 0)
-        ),
-        HealthZone(
-            "95-100% (normal)",
-            95f, 100f,
-            android.graphics.Color.argb(55, 76, 175, 80),
-            android.graphics.Color.argb(255, 46, 125, 50)
-        )
-    )
-    HealthRecordType.TEMPERATURE -> listOf(
-        HealthZone(
-            "< 36°C (hipotermia)",
-            30f, 36f,
-            android.graphics.Color.argb(55, 33, 150, 243),
-            android.graphics.Color.argb(255, 21, 101, 192)
-        ),
-        HealthZone(
-            "36-37.5°C (normal)",
-            36f, 37.5f,
-            android.graphics.Color.argb(55, 76, 175, 80),
-            android.graphics.Color.argb(255, 46, 125, 50)
-        ),
-        HealthZone(
-            "37.5-38°C (febrícula)",
-            37.5f, 38f,
-            android.graphics.Color.argb(55, 255, 152, 0),
-            android.graphics.Color.argb(255, 230, 81, 0)
-        ),
-        HealthZone(
-            "> 38°C (fiebre)",
-            38f, 45f,
-            android.graphics.Color.argb(55, 244, 67, 54),
-            android.graphics.Color.argb(255, 183, 28, 28)
-        )
-    )
-    HealthRecordType.WEIGHT, HealthRecordType.CUSTOM -> emptyList()
+        HealthRecordType.TEMPERATURE -> {
+            val fahrenheit = u.contains("f")
+            if (fahrenheit) listOf(
+                HealthZone(zoneLabel(low, "< 96.8 °F"), 86f, 96.8f, ColorBlueFill, ColorBlueLegend),
+                HealthZone(zoneLabel(normal, "96.8–99.5 °F"), 96.8f, 99.5f, ColorGreenFill, ColorGreenLegend),
+                HealthZone(zoneLabel(elevated, "99.5–100.4 °F"), 99.5f, 100.4f, ColorAmberFill, ColorAmberLegend),
+                HealthZone(zoneLabel(high, "> 100.4 °F"), 100.4f, 113f, ColorRedFill, ColorRedLegend)
+            ) else listOf(
+                HealthZone(zoneLabel(low, "< 36 °C"), 30f, 36f, ColorBlueFill, ColorBlueLegend),
+                HealthZone(zoneLabel(normal, "36–37.5 °C"), 36f, 37.5f, ColorGreenFill, ColorGreenLegend),
+                HealthZone(zoneLabel(elevated, "37.5–38 °C"), 37.5f, 38f, ColorAmberFill, ColorAmberLegend),
+                HealthZone(zoneLabel(high, "> 38 °C"), 38f, 45f, ColorRedFill, ColorRedLegend)
+            )
+        }
+        HealthRecordType.WEIGHT, HealthRecordType.CUSTOM -> emptyList()
+    }
+}
+
+@Composable
+private fun BloodPressureLegend(primaryColor: Color, secondaryColor: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        LegendDot(stringResource(R.string.health_label_systolic), primaryColor)
+        LegendDot(stringResource(R.string.health_label_diastolic), secondaryColor)
+    }
+}
+
+@Composable
+private fun LegendDot(label: String, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(modifier = Modifier.size(10.dp).background(color = color, shape = CircleShape))
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }

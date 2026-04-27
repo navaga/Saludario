@@ -16,7 +16,7 @@ import com.ignaciovalero.saludario.data.local.entity.MedicationLogEntity
 		MedicationLogEntity::class,
 		HealthRecord::class
 	],
-	version = 5,
+	version = 6,
 	exportSchema = true
 )
 @TypeConverters(RoomTypeConverters::class)

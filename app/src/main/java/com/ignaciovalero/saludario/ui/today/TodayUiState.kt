@@ -6,5 +6,6 @@ import java.time.LocalDate
 data class TodayUiState(
     val selectedDate: LocalDate = LocalDate.now(),
     val scheduledItems: List<ScheduledDose> = emptyList(),
-    val canModifyIntake: Boolean = true
+    val canModifyIntake: Boolean = true,
+    val streakDays: Int = 0
 )

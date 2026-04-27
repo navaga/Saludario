@@ -1,6 +1,8 @@
 package com.ignaciovalero.saludario.ui.medications
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,18 +14,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
@@ -207,13 +212,11 @@ private fun MedicationCard(
         R.string.medications_stock_progress_cd,
         item.stockLabel
     )
-    val editContentDescription = stringResource(R.string.medications_edit_item_cd, item.name)
-    val restockContentDescription = stringResource(R.string.medications_restock_item_cd, item.name)
-    val deleteContentDescription = stringResource(R.string.medications_delete_item_cd, item.name)
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
@@ -222,8 +225,8 @@ private fun MedicationCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                .padding(horizontal = AppSpacing.md, vertical = AppSpacing.sm + 2.dp),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -263,54 +266,99 @@ private fun MedicationCard(
                     }
                 }
 
-                IconButton(onClick = onEdit) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = editContentDescription
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (item.hasQuantityTracking) {
+                        IconButton(onClick = onAddStock) {
+                            Icon(
+                                imageVector = Icons.Default.AddCircle,
+                                contentDescription = stringResource(R.string.medications_restock_item_cd, item.name),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    Box {
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.medications_more_actions_cd, item.name)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.medications_edit_menu_action)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = null
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onEdit()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.medications_delete_menu_action)) },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    onDelete()
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
             if (item.hasQuantityTracking) {
-                LinearProgressIndicator(
-                    progress = { item.stockProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .semantics {
-                            contentDescription = stockProgressDescription
-                            progressBarRangeInfo = ProgressBarRangeInfo(item.stockProgress, 0f..1f)
-                        },
-                    color = if (item.isLowStock) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    },
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                StockProgressBar(
+                    progress = item.stockProgress,
+                    isLowStock = item.isLowStock,
+                    contentDescription = stockProgressDescription
                 )
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onAddStock) {
-                    Icon(
-                        imageVector = Icons.Default.AddCircle,
-                        contentDescription = restockContentDescription,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = deleteContentDescription,
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
         }
+    }
+}
+
+@Composable
+private fun StockProgressBar(
+    progress: Float,
+    isLowStock: Boolean,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+    val progressColor = if (isLowStock) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .semantics {
+                this.contentDescription = contentDescription
+                progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f)
+            }
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(progress.coerceIn(0f, 1f))
+                .height(6.dp)
+                .background(progressColor)
+        )
     }
 }
 

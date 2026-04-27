@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +28,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -67,6 +71,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.core.localization.localizedDurationMinutes
 import com.ignaciovalero.saludario.core.localization.localizedLocalTime
 import com.ignaciovalero.saludario.core.localization.localizedMedicationDosage
 import com.ignaciovalero.saludario.domain.scheduling.ScheduledDose
@@ -98,11 +103,13 @@ fun DayScreen(
     selectedDate: LocalDate,
     uiState: TodayUiState,
     onToggleTaken: (medicationId: Long, time: String) -> Unit,
+    onPostpone: (medicationId: Long, time: String, minutes: Long) -> Unit,
     onPreviousDay: () -> Unit,
     onNextDay: () -> Unit,
     onDateSelected: (LocalDate) -> Unit,
     onEnterSimpleMode: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenReliability: () -> Unit,
     showSimpleModeHint: Boolean,
     onDismissSimpleModeHint: () -> Unit,
     contentPadding: PaddingValues,
@@ -122,8 +129,20 @@ fun DayScreen(
     val selectedDateDescription = stringResource(R.string.day_selected_date_cd, formattedDate)
     val totalDoses = uiState.scheduledItems.size
     val takenDoses = uiState.scheduledItems.count { it.isTaken }
+    val missedDoses = uiState.scheduledItems.count { it.isMissed }
+    val postponedDoses = uiState.scheduledItems.count { it.isPostponed }
+    val pendingDoses = uiState.scheduledItems.count { it.isPending }
     val progress = if (totalDoses > 0) takenDoses.toFloat() / totalDoses.toFloat() else 0f
     val adherencePercent = (progress * 100f).roundToInt()
+    val isToday = selectedDate == LocalDate.now()
+    val nowLocalDateTime = remember(uiState.scheduledItems) { java.time.LocalDateTime.now() }
+    // Una dosis "requiere atención" si está olvidada, pospuesta o si está pendiente
+    // y su hora efectiva ya ha pasado.
+    val attentionDoses = if (isToday) {
+        uiState.scheduledItems.count {
+            it.isMissed || it.isPostponed || (it.isPending && it.effectiveTime <= nowLocalDateTime)
+        }
+    } else 0
     val dayStatus = remember(adherencePercent, totalDoses) {
         when {
             totalDoses == 0 -> DayAdherenceStatus.REGULAR
@@ -153,11 +172,22 @@ fun DayScreen(
 
     val smartSummaryMessage = when {
         totalDoses == 0 -> stringResource(R.string.day_message_no_doses)
+        // Cuando estamos viendo el día actual, prioriza acción sobre porcentaje.
+        isToday && attentionDoses > 0 -> stringResource(R.string.day_message_urgent, attentionDoses)
+        isToday && pendingDoses > 0 -> stringResource(R.string.day_message_pending, pendingDoses)
+        isToday && takenDoses == totalDoses -> stringResource(R.string.day_message_all_done)
+        // Para fechas pasadas/futuras, mantenemos el mensaje basado en adherencia.
         dayStatus == DayAdherenceStatus.GOOD -> stringResource(R.string.day_message_good, adherencePercent)
         dayStatus == DayAdherenceStatus.REGULAR -> stringResource(R.string.day_message_regular, adherencePercent)
         else -> stringResource(R.string.day_message_bad, adherencePercent)
     }
-    val showStatusBadge = totalDoses > 0
+    val smartSummaryColor = when {
+        totalDoses == 0 -> MaterialTheme.colorScheme.onPrimaryContainer
+        isToday && attentionDoses > 0 -> MaterialTheme.colorScheme.error
+        isToday && (pendingDoses > 0 || takenDoses < totalDoses) -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onPrimaryContainer
+    }
+    val showStatusBadge = totalDoses > 0 && !isToday
 
     var showDatePicker by remember { mutableStateOf(false) }
 
@@ -277,12 +307,16 @@ fun DayScreen(
             }
         }
 
+        com.ignaciovalero.saludario.ui.today.reliability.ReminderReliabilityBanner(
+            onReview = onOpenReliability
+        )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = AppSpacing.lg),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -293,49 +327,71 @@ fun DayScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.day_summary_taken_total, takenDoses, totalDoses),
+                        text = stringResource(R.string.day_summary_adherence_label),
                         style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-                    if (showStatusBadge) {
-                        Box(
-                            modifier = Modifier
-                                .background(statusContainerColor, RoundedCornerShape(8.dp))
-                                .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
-                        ) {
-                            Text(
-                                text = dayStatusLabel,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = statusContentColor,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(
+                                R.string.day_summary_dose_count,
+                                takenDoses,
+                                totalDoses
+                            ),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        if (showStatusBadge) {
+                            Spacer(modifier = Modifier.width(AppSpacing.sm))
+                            Box(
+                                modifier = Modifier
+                                    .background(statusContainerColor, RoundedCornerShape(8.dp))
+                                    .padding(horizontal = AppSpacing.sm, vertical = AppSpacing.xs)
+                            ) {
+                                Text(
+                                    text = dayStatusLabel,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = statusContentColor,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }
                 Spacer(modifier = Modifier.height(AppSpacing.xs))
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp)
-                        .semantics {
-                            contentDescription = context.getString(
-                                R.string.day_summary_progress_cd,
-                                adherencePercent
-                            )
-                            progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f)
-                        },
-                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    color = MaterialTheme.colorScheme.primary
+                SegmentedAdherenceBar(
+                    taken = takenDoses,
+                    postponed = postponedDoses,
+                    missed = missedDoses,
+                    pending = pendingDoses,
+                    progress = progress,
+                    contentDescription = context.getString(
+                        R.string.day_summary_progress_cd,
+                        adherencePercent
+                    )
                 )
                 Spacer(modifier = Modifier.height(AppSpacing.xs))
-                Text(
-                    text = smartSummaryMessage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = smartSummaryMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = smartSummaryColor,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (uiState.streakDays >= 2) {
+                        Spacer(modifier = Modifier.width(AppSpacing.sm))
+                        StreakChip(days = uiState.streakDays)
+                    }
+                }
             }
         }
 
@@ -360,25 +416,88 @@ fun DayScreen(
                 )
             }
         } else {
-            val groupedByHour = uiState.scheduledItems.groupBy { it.time.substringBefore(":") }
-
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
-                groupedByHour.forEach { (hour, items) ->
-                    item(key = "header_$hour") {
-                        TimeGroupHeader(hour = hour)
+                if (isToday) {
+                    val attentionItems = uiState.scheduledItems.filter {
+                        it.isMissed || it.isPostponed ||
+                            (it.isPending && it.effectiveTime <= nowLocalDateTime)
+                    }.sortedBy { it.effectiveTime }
+                    val upcomingItems = uiState.scheduledItems.filter {
+                        it.isPending && it.effectiveTime > nowLocalDateTime
+                    }.sortedBy { it.effectiveTime }
+                    val takenItems = uiState.scheduledItems.filter { it.isTaken }
+                        .sortedBy { it.effectiveTime }
+
+                    if (attentionItems.isNotEmpty()) {
+                        item(key = "section_attention") {
+                            SectionHeader(
+                                text = stringResource(R.string.today_section_needs_attention),
+                                accentColor = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        items(attentionItems, key = { "a_${it.medicationId}_${it.time}" }) { item ->
+                            ScheduledMedicationCard(
+                                item = item,
+                                canModifyIntake = uiState.canModifyIntake,
+                                onToggle = { onToggleTaken(item.medicationId, item.time) },
+                                onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
+                            )
+                        }
                     }
-                    items(items, key = { "${it.medicationId}_${it.time}" }) { item ->
-                        ScheduledMedicationCard(
-                            item = item,
-                            canModifyIntake = uiState.canModifyIntake,
-                            onToggle = { onToggleTaken(item.medicationId, item.time) }
-                        )
+
+                    if (upcomingItems.isNotEmpty()) {
+                        item(key = "section_upcoming") {
+                            SectionHeader(
+                                text = stringResource(R.string.today_section_upcoming),
+                                accentColor = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        items(upcomingItems, key = { "u_${it.medicationId}_${it.time}" }) { item ->
+                            ScheduledMedicationCard(
+                                item = item,
+                                canModifyIntake = uiState.canModifyIntake,
+                                onToggle = { onToggleTaken(item.medicationId, item.time) },
+                                onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
+                            )
+                        }
                     }
-                    item(key = "spacer_$hour") {
-                        Spacer(modifier = Modifier.height(AppSpacing.sm))
+
+                    if (takenItems.isNotEmpty()) {
+                        item(key = "section_taken") {
+                            SectionHeader(
+                                text = stringResource(R.string.today_section_taken),
+                                accentColor = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                        items(takenItems, key = { "t_${it.medicationId}_${it.time}" }) { item ->
+                            ScheduledMedicationCard(
+                                item = item,
+                                canModifyIntake = uiState.canModifyIntake,
+                                onToggle = { onToggleTaken(item.medicationId, item.time) },
+                                onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
+                            )
+                        }
+                    }
+                } else {
+                    val groupedByHour = uiState.scheduledItems.groupBy { it.time.substringBefore(":") }
+                    groupedByHour.forEach { (hour, items) ->
+                        item(key = "header_$hour") {
+                            TimeGroupHeader(hour = hour)
+                        }
+                        items(items, key = { "${it.medicationId}_${it.time}" }) { item ->
+                            ScheduledMedicationCard(
+                                item = item,
+                                canModifyIntake = uiState.canModifyIntake,
+                                onToggle = { onToggleTaken(item.medicationId, item.time) },
+                                onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
+                            )
+                        }
+                        item(key = "spacer_$hour") {
+                            Spacer(modifier = Modifier.height(AppSpacing.sm))
+                        }
                     }
                 }
             }
@@ -428,6 +547,70 @@ private enum class DayAdherenceStatus {
 }
 
 @Composable
+private fun SegmentedAdherenceBar(
+    taken: Int,
+    postponed: Int,
+    missed: Int,
+    pending: Int,
+    progress: Float,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+    val total = taken + postponed + missed + pending
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val takenColor = if (isDark) MedicationTakenAccentDark else MedicationTakenAccentLight
+    val missedColor = if (isDark) MedicationMissedAccentDark else MedicationMissedAccentLight
+    val postponedColor = MaterialTheme.colorScheme.tertiary
+    val pendingColor = MaterialTheme.colorScheme.outlineVariant
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .semantics {
+                this.contentDescription = contentDescription
+                progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f)
+            }
+            .background(pendingColor.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
+    ) {
+        if (total == 0) return@Row
+        val segments = listOf(
+            taken to takenColor,
+            postponed to postponedColor,
+            missed to missedColor,
+            pending to pendingColor
+        )
+        segments.forEach { (count, color) ->
+            if (count > 0) {
+                Box(
+                    modifier = Modifier
+                        .weight(count.toFloat())
+                        .fillMaxHeight()
+                        .background(color)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    text: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.Bold,
+        color = accentColor,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = AppSpacing.sm, bottom = AppSpacing.xs)
+    )
+}
+
+@Composable
 private fun TimeGroupHeader(hour: String, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
@@ -462,6 +645,7 @@ private fun ScheduledMedicationCard(
     item: ScheduledDose,
     canModifyIntake: Boolean,
     onToggle: () -> Unit,
+    onPostpone: (minutes: Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -472,26 +656,31 @@ private fun ScheduledMedicationCard(
     val takenAccentColor = if (isDarkTheme) MedicationTakenAccentDark else MedicationTakenAccentLight
     val missedSoftColor = if (isDarkTheme) MedicationMissedContainerDark else MedicationMissedContainerLight
     val missedAccentColor = if (isDarkTheme) MedicationMissedAccentDark else MedicationMissedAccentLight
-    val localizedTime = context.localizedLocalTime(item.scheduledAt.toLocalTime())
+    val localizedTime = context.localizedLocalTime(item.effectiveTime.toLocalTime())
     val localizedDosage = context.localizedMedicationDosage(item.medication.dosage, item.medication.unit)
+    val takenAtLocalized = item.takenAt?.let { context.localizedLocalTime(it.toLocalTime()) }
+    val originalScheduledLocalized = context.localizedLocalTime(item.scheduledAt.toLocalTime())
 
     val accentColor = when (item.status) {
         ScheduledDoseStatus.TAKEN -> takenAccentColor
         ScheduledDoseStatus.MISSED -> missedAccentColor
-        ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.primary
+        ScheduledDoseStatus.PENDING,
+        ScheduledDoseStatus.POSTPONED -> MaterialTheme.colorScheme.primary
     }
 
     val containerColor by animateColorAsState(
         targetValue = when (item.status) {
             ScheduledDoseStatus.TAKEN -> takenSoftColor
             ScheduledDoseStatus.MISSED -> missedSoftColor
-            ScheduledDoseStatus.PENDING -> pendingSoftColor
+            ScheduledDoseStatus.PENDING,
+            ScheduledDoseStatus.POSTPONED -> pendingSoftColor
         },
         animationSpec = tween(durationMillis = 300),
         label = "cardColor"
     )
 
     val canTakeAction = canModifyIntake && item.status != ScheduledDoseStatus.TAKEN
+    val canPostpone = canModifyIntake && (item.isPending || item.isPostponed || item.isMissed)
     val takenStatusDescription = stringResource(
         R.string.today_taken_status_cd,
         item.medicationName,
@@ -502,39 +691,59 @@ private fun ScheduledMedicationCard(
         item.medicationName,
         localizedTime
     )
+    val postponeDescription = stringResource(
+        R.string.today_postpone_cd,
+        item.medicationName
+    )
 
+    // El botón de acción principal siempre usa color primario (acción positiva).
+    // El rojo se reserva para indicar el estado "Olvidada" en la etiqueta y borde,
+    // no en el botón que el usuario debe pulsar para corregir la situación.
     val actionContainerColor = when (item.status) {
-        ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.primary
-        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.error
+        ScheduledDoseStatus.PENDING,
+        ScheduledDoseStatus.POSTPONED,
+        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.primary
         ScheduledDoseStatus.TAKEN -> takenSoftColor
     }
 
     val actionContentColor = when (item.status) {
-        ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.onPrimary
-        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onError
+        ScheduledDoseStatus.PENDING,
+        ScheduledDoseStatus.POSTPONED,
+        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onPrimary
         ScheduledDoseStatus.TAKEN -> takenAccentColor
     }
     val actionLabel = when (item.status) {
         ScheduledDoseStatus.TAKEN -> ""
         ScheduledDoseStatus.PENDING,
+        ScheduledDoseStatus.POSTPONED,
         ScheduledDoseStatus.MISSED -> stringResource(R.string.today_mark_taken_button)
+    }
+
+    // Borde lateral por estado: codifica de un vistazo la urgencia de la dosis.
+    val sideAccentColor = when (item.status) {
+        ScheduledDoseStatus.MISSED -> missedAccentColor
+        ScheduledDoseStatus.POSTPONED -> MaterialTheme.colorScheme.tertiary
+        ScheduledDoseStatus.TAKEN -> takenAccentColor
+        ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.outlineVariant
     }
 
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        border = if (item.status != ScheduledDoseStatus.PENDING) {
-            BorderStroke(1.dp, accentColor.copy(alpha = 0.65f))
-        } else {
-            null
-        }
+        colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
-        ) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(
+                modifier = Modifier
+                    .width(5.dp)
+                    .fillMaxHeight()
+                    .background(sideAccentColor)
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
+            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -556,6 +765,40 @@ private fun ScheduledMedicationCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
+                    if (item.isTaken && takenAtLocalized != null) {
+                        Spacer(modifier = Modifier.height(AppSpacing.xs))
+                        Text(
+                            text = stringResource(R.string.today_taken_at, takenAtLocalized),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = takenAccentColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    } else if (item.isPostponed) {
+                        Spacer(modifier = Modifier.height(AppSpacing.xs))
+                        Text(
+                            text = stringResource(R.string.today_originally_scheduled, originalScheduledLocalized),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    } else if (item.isMissed) {
+                        // Tiempo relativo legible: "hace 3 h", "hace 25 min".
+                        val minutesAgo = java.time.Duration
+                            .between(item.scheduledAt, java.time.LocalDateTime.now())
+                            .toMinutes()
+                            .coerceAtLeast(0L)
+                        val durationText = context.localizedDurationMinutes(minutesAgo)
+                        Spacer(modifier = Modifier.height(AppSpacing.xs))
+                        Text(
+                            text = stringResource(R.string.today_relative_ago, durationText),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = missedAccentColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
 
                 Box(
@@ -612,6 +855,12 @@ private fun ScheduledMedicationCard(
                         MaterialTheme.colorScheme.onSecondaryContainer
                     )
 
+                    ScheduledDoseStatus.POSTPONED -> Triple(
+                        stringResource(R.string.today_status_postponed),
+                        MaterialTheme.colorScheme.tertiaryContainer,
+                        MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+
                     ScheduledDoseStatus.MISSED -> Triple(
                         stringResource(R.string.today_status_missed),
                         MaterialTheme.colorScheme.errorContainer,
@@ -640,34 +889,86 @@ private fun ScheduledMedicationCard(
                         )
                     }
 
-                    Button(
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onToggle()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics {
-                                contentDescription = markTakenDescription
-                            },
-                        enabled = canTakeAction,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = actionContainerColor,
-                            contentColor = actionContentColor,
-                            disabledContainerColor = actionContainerColor,
-                            disabledContentColor = actionContentColor
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.CheckCircle,
-                            contentDescription = stringResource(R.string.today_mark_missed_taken),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = actionLabel)
+                        Button(
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onToggle()
+                            },
+                            modifier = Modifier
+                                .weight(1.75f)
+                                .semantics {
+                                    contentDescription = markTakenDescription
+                                },
+                            enabled = canTakeAction,
+                            contentPadding = PaddingValues(horizontal = AppSpacing.xs, vertical = AppSpacing.xs + 2.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = actionContainerColor,
+                                contentColor = actionContentColor,
+                                disabledContainerColor = actionContainerColor,
+                                disabledContentColor = actionContentColor
+                            )
+                        ) {
+                            Text(
+                                text = actionLabel,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1
+                            )
+                        }
+
+                        if (canPostpone) {
+                            var postponeMenuExpanded by remember { mutableStateOf(false) }
+                            Box(modifier = Modifier.weight(1f)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        postponeMenuExpanded = true
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .semantics {
+                                            contentDescription = postponeDescription
+                                        },
+                                    contentPadding = PaddingValues(horizontal = AppSpacing.xs, vertical = AppSpacing.xs),
+                                    border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = stringResource(R.string.today_postpone_short_label),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.today_postpone_short_minutes),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                                PostponeOptionsMenu(
+                                    expanded = postponeMenuExpanded,
+                                    onDismiss = { postponeMenuExpanded = false },
+                                    onSelect = { minutes ->
+                                        postponeMenuExpanded = false
+                                        onPostpone(minutes)
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
+        }
         }
     }
 }
@@ -715,14 +1016,95 @@ private fun TodayScreenPreview() {
                 )
             ),
             onToggleTaken = { _, _ -> },
+            onPostpone = { _, _, _ -> },
             onPreviousDay = {},
             onNextDay = {},
             onDateSelected = {},
             onEnterSimpleMode = {},
             onOpenSettings = {},
+            onOpenReliability = {},
             showSimpleModeHint = true,
             onDismissSimpleModeHint = {},
             contentPadding = PaddingValues(0.dp)
         )
+    }
+}
+
+@Composable
+private fun StreakChip(days: Int) {
+    val cd = stringResource(R.string.today_streak_chip_cd, days)
+    Row(
+        modifier = Modifier
+            .background(
+                MaterialTheme.colorScheme.tertiaryContainer,
+                RoundedCornerShape(999.dp)
+            )
+            .padding(horizontal = AppSpacing.sm + 2.dp, vertical = AppSpacing.xs)
+            .semantics { contentDescription = cd },
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.xs),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Filled.LocalFireDepartment,
+            contentDescription = null,
+            modifier = Modifier.size(14.dp),
+            tint = MaterialTheme.colorScheme.onTertiaryContainer
+        )
+        Text(
+            text = stringResource(R.string.today_streak_chip, days),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onTertiaryContainer
+        )
+    }
+}
+
+@Composable
+private fun PostponeOptionsMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    onSelect: (minutes: Long) -> Unit
+) {
+    val tonightMinutes: Long? = remember(expanded) {
+        if (!expanded) {
+            null
+        } else {
+            val now = java.time.LocalDateTime.now()
+            val tonightAt22 = now.toLocalDate().atTime(22, 0)
+            val diff = java.time.Duration.between(now, tonightAt22).toMinutes()
+            // Solo se ofrece si quedan al menos 15 min hasta las 22:00.
+            if (diff >= 15L) diff else null
+        }
+    }
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss,
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+    ) {
+        Text(
+            text = stringResource(R.string.today_postpone_options_title),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = AppSpacing.md, vertical = AppSpacing.xs)
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.today_postpone_option_30min)) },
+            onClick = { onSelect(30L) }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.today_postpone_option_1h)) },
+            onClick = { onSelect(60L) }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.today_postpone_option_2h)) },
+            onClick = { onSelect(120L) }
+        )
+        if (tonightMinutes != null) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.today_postpone_option_tonight)) },
+                onClick = { onSelect(tonightMinutes) }
+            )
+        }
     }
 }

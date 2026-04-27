@@ -1,22 +1,15 @@
 package com.ignaciovalero.saludario.data.repository
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.app.NotificationManagerCompat
 import com.ignaciovalero.saludario.data.local.dao.MedicationDao
 import com.ignaciovalero.saludario.data.local.entity.MedicationEntity
-import com.ignaciovalero.saludario.data.notification.NotificationHelper
-import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
+import com.ignaciovalero.saludario.data.notification.LowStockNotifier
 import com.ignaciovalero.saludario.domain.insights.InsightSeverity
 import com.ignaciovalero.saludario.domain.repository.MedicationRepository
 import kotlinx.coroutines.flow.Flow
 
 class MedicationRepositoryImpl(
     private val medicationDao: MedicationDao,
-    private val appContext: Context,
-    private val userPreferencesDataSource: UserPreferencesDataSource
+    private val lowStockNotifier: LowStockNotifier
 ) : MedicationRepository {
 
     override fun observeAll(): Flow<List<MedicationEntity>> =
@@ -42,34 +35,16 @@ class MedicationRepositoryImpl(
         val updatedRemaining = (medication.stockRemaining - medication.dosage).coerceAtLeast(0.0)
         medicationDao.updateStockRemaining(medicationId, updatedRemaining)
 
-        val currentSeverity = lowStockSeverityFor(
+        val severity = lowStockSeverityFor(
             stockRemaining = updatedRemaining,
             stockTotal = medication.stockTotal,
             lowStockThreshold = medication.lowStockThreshold
         )
-        val lastState = userPreferencesDataSource.getLastLowStockNotifiedState(medicationId)
-        val currentState = currentSeverity?.name
-
-        if (currentState == null) {
-            userPreferencesDataSource.clearLastLowStockNotifiedState(medicationId)
-            return
-        }
-
-        if (lastState == currentState) {
-            return
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            appContext.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val notification = NotificationHelper
-                .buildLowStockNotification(appContext, medication.name)
-                .build()
-            NotificationManagerCompat.from(appContext)
-                .notify(NotificationHelper.lowStockNotificationId(medicationId), notification)
-        }
-
-        userPreferencesDataSource.setLastLowStockNotifiedState(medicationId, currentState)
+        lowStockNotifier.notifyIfSeverityChanged(
+            medicationId = medicationId,
+            medicationName = medication.name,
+            severity = severity
+        )
     }
 
     override suspend fun addStock(medicationId: Long, amount: Double) {
@@ -86,9 +61,7 @@ class MedicationRepositoryImpl(
             lowStockThreshold = medication.lowStockThreshold
         )
 
-        NotificationManagerCompat.from(appContext)
-            .cancel(NotificationHelper.lowStockNotificationId(medicationId))
-        userPreferencesDataSource.clearLastLowStockNotifiedState(medicationId)
+        lowStockNotifier.clear(medicationId)
     }
 
     private fun lowStockSeverityFor(

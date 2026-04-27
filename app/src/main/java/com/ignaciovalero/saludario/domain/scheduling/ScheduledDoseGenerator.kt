@@ -1,5 +1,6 @@
 package com.ignaciovalero.saludario.domain.scheduling
 
+import com.ignaciovalero.saludario.core.DoseConstants.GRACE_PERIOD_MINUTES
 import com.ignaciovalero.saludario.data.local.entity.MedicationEntity
 import com.ignaciovalero.saludario.data.local.entity.MedicationLogEntity
 import com.ignaciovalero.saludario.data.local.entity.MedicationScheduleType
@@ -37,14 +38,31 @@ class ScheduledDoseGenerator(
                     else -> med.times.map { time -> LocalDateTime.of(date, time) }
                 }
 
-                scheduledDateTimes.map { scheduledDateTime ->
+                scheduledDateTimes.mapNotNull { scheduledDateTime ->
                     val log = targetLogs.find {
                         it.medicationId == med.id && it.scheduledTime.toLocalTime() == scheduledDateTime.toLocalTime()
+                    }
+
+                    // Si la medicación empieza hoy y la dosis ya pasó el periodo de gracia
+                    // sin ningún log previo, se omite para no mostrarla como olvidada
+                    if (log == null &&
+                        med.startDate == date &&
+                        scheduledDateTime.plusMinutes(GRACE_PERIOD_MINUTES).isBefore(now)
+                    ) {
+                        return@mapNotNull null
                     }
 
                     val status = when {
                         log?.status == MedicationStatus.TAKEN -> ScheduledDoseStatus.TAKEN
                         log?.status == MedicationStatus.MISSED -> ScheduledDoseStatus.MISSED
+                        log?.status == MedicationStatus.POSTPONED -> {
+                            val until = log.postponedUntil
+                            if (until != null && until.plusMinutes(GRACE_PERIOD_MINUTES).isBefore(now)) {
+                                ScheduledDoseStatus.MISSED
+                            } else {
+                                ScheduledDoseStatus.POSTPONED
+                            }
+                        }
                         scheduledDateTime.isBefore(now) && log?.status != MedicationStatus.TAKEN -> ScheduledDoseStatus.MISSED
                         else -> ScheduledDoseStatus.PENDING
                     }
@@ -58,10 +76,12 @@ class ScheduledDoseGenerator(
                         ),
                         scheduledAt = scheduledDateTime,
                         status = status,
-                        logId = log?.id
+                        logId = log?.id,
+                        takenAt = log?.takenTime,
+                        postponedUntil = log?.postponedUntil
                     )
                 }
             }
-            .sortedBy { it.scheduledAt }
+            .sortedBy { it.effectiveTime }
     }
 }

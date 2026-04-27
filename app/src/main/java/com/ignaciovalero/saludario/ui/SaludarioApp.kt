@@ -117,6 +117,7 @@ private fun SimpleModeContent(onExitSimpleMode: () -> Unit) {
         SimpleModeScreen(
             uiState = todayState,
             onConfirmTaken = todayViewModel::toggleTaken,
+            onPostpone = { id, time -> todayViewModel.postpone(id, time) },
             onExitSimpleMode = onExitSimpleMode,
             contentPadding = innerPadding
         )
@@ -211,16 +212,41 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                 val showSimpleModeHint by tutorialViewModel
                     .shouldShow(TutorialScreen.SIMPLE_MODE_HINT)
                     .collectAsState(initial = false)
+                val context = LocalContext.current
+                LaunchedEffect(viewModel) {
+                    viewModel.snackbarEvents.collect { event ->
+                        val messageRes = when (event) {
+                            com.ignaciovalero.saludario.ui.today.TodaySnackbarEvent.MARKED_TAKEN -> R.string.today_snackbar_marked_taken
+                            com.ignaciovalero.saludario.ui.today.TodaySnackbarEvent.UNMARKED_TAKEN -> R.string.today_snackbar_unmarked_taken
+                            com.ignaciovalero.saludario.ui.today.TodaySnackbarEvent.POSTPONED_30 -> R.string.today_snackbar_postponed_30
+                            com.ignaciovalero.saludario.ui.today.TodaySnackbarEvent.POSTPONED_60 -> R.string.today_snackbar_postponed_60
+                            com.ignaciovalero.saludario.ui.today.TodaySnackbarEvent.POSTPONED_120 -> R.string.today_snackbar_postponed_120
+                            com.ignaciovalero.saludario.ui.today.TodaySnackbarEvent.POSTPONED_OTHER -> R.string.today_snackbar_postponed_other
+                        }
+                        snackbarHostState.currentSnackbarData?.dismiss()
+                        val result = snackbarHostState.showSnackbar(
+                            message = context.getString(messageRes),
+                            actionLabel = context.getString(R.string.today_snackbar_undo),
+                            withDismissAction = true,
+                            duration = androidx.compose.material3.SnackbarDuration.Short
+                        )
+                        if (result == androidx.compose.material3.SnackbarResult.ActionPerformed) {
+                            viewModel.undoLastAction()
+                        }
+                    }
+                }
                 Box(modifier = Modifier.fillMaxSize()) {
                     DayScreen(
                         selectedDate = todayState.selectedDate,
                         uiState = todayState,
                         onToggleTaken = viewModel::toggleTaken,
+                        onPostpone = { id, time, minutes -> viewModel.postpone(id, time, minutes) },
                         onPreviousDay = viewModel::previousDay,
                         onNextDay = viewModel::nextDay,
                         onDateSelected = viewModel::setDate,
                         onEnterSimpleMode = onEnterSimpleMode,
                         onOpenSettings = { navController.navigate(Screen.Settings.route) },
+                        onOpenReliability = { navController.navigate(Screen.ReminderReliability.route) },
                         showSimpleModeHint = showSimpleModeHint,
                         onDismissSimpleModeHint = {
                             tutorialViewModel.onUnderstood(TutorialScreen.SIMPLE_MODE_HINT)
@@ -281,6 +307,7 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                                 launchSingleTop = true
                             }
                         },
+                        onBack = { navController.popBackStack() },
                         onMessageShown = viewModel::onMessageShown,
                         snackbarHostState = snackbarHostState,
                         contentPadding = innerPadding
@@ -414,6 +441,7 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                         viewModel.resetForm()
                         navController.popBackStack()
                     },
+                    onBack = { navController.popBackStack() },
                     onMessageShown = viewModel::onMessageShown,
                     snackbarHostState = snackbarHostState,
                     contentPadding = innerPadding
@@ -436,11 +464,18 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                             }
                         }
                     },
+                    onOpenReliability = { navController.navigate(Screen.ReminderReliability.route) },
                     contentPadding = innerPadding
                 )
             }
             composable(Screen.PrivacyPolicy.route) {
                 PrivacyPolicyScreen(
+                    onBack = { navController.popBackStack() },
+                    contentPadding = innerPadding
+                )
+            }
+            composable(Screen.ReminderReliability.route) {
+                com.ignaciovalero.saludario.ui.settings.reliability.ReminderReliabilityScreen(
                     onBack = { navController.popBackStack() },
                     contentPadding = innerPadding
                 )

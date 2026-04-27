@@ -10,6 +10,8 @@ data class HealthDetailUiState(
     val notes: String = "",
     val records: List<HealthRecord> = emptyList(),
     @param:StringRes val primaryError: Int? = null,
+    val primaryErrorArgs: List<String>? = null,
     @param:StringRes val secondaryError: Int? = null,
+    val secondaryErrorArgs: List<String>? = null,
     @param:StringRes val unitError: Int? = null
 )

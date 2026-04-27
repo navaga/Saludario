@@ -81,12 +81,23 @@
     <string name="health_detail_placeholder">Aquí podrás ver y gestionar los registros de %1$s.</string>
     <string name="health_add_record_title">Nuevo registro</string>
     <string name="health_label_value">Valor</string>
-    <string name="health_label_systolic">Máxima</string>
-    <string name="health_label_diastolic">Mínima</string>
+    <string name="health_label_systolic">Sistólica</string>
+    <string name="health_label_diastolic">Diastólica</string>
     <string name="health_label_unit">Unidad</string>
     <string name="health_label_notes_optional">Notas (opcional)</string>
     <string name="health_error_invalid_value">Introduce un valor válido</string>
     <string name="health_error_unit_required">La unidad es obligatoria</string>
+    <string name="health_error_systolic_must_exceed_diastolic">La sistólica debe ser mayor que la diastólica</string>
+    <string name="health_error_oxygen_max_100">La saturación no puede superar el 100%</string>
+    <string name="health_error_value_out_of_range">Valor fuera del rango plausible (%1$s–%2$s)</string>
+    <string name="health_disclaimer">Datos para seguimiento personal. Saludario no es un dispositivo médico ni sustituye el consejo profesional. Consulta a un sanitario ante dudas o síntomas.</string>
+    <string name="health_zone_orientative_note">Rangos orientativos; pueden variar según la persona y el contexto.</string>
+    <string name="health_zone_low">Bajo</string>
+    <string name="health_zone_normal">Normal</string>
+    <string name="health_zone_elevated">Elevado</string>
+    <string name="health_zone_high">Alto</string>
+    <string name="health_zone_very_high">Muy alto</string>
+    <string name="health_zone_critical_low">Crítico bajo</string>
     <string name="health_save_button">Guardar</string>
     <string name="health_previous_records_title">Registros anteriores</string>
     <string name="health_previous_records_empty">Todavía no hay registros para este tipo.</string>
@@ -130,6 +141,29 @@
     <string name="today_status_pending">Pendiente</string>
     <string name="today_status_taken">Tomada</string>
     <string name="today_status_missed">Olvidada</string>
+    <string name="today_status_postponed">Pospuesta</string>
+    <string name="today_postpone_30min">+30 min</string>
+    <string name="today_postpone_short_label">Posponer</string>
+    <string name="today_postpone_short_minutes">30 min</string>
+    <string name="today_postpone_cd">Posponer %1$s 30 minutos</string>
+    <string name="today_taken_at">Tomada a las %1$s</string>
+    <string name="today_postponed_until">Pospuesta hasta las %1$s</string>
+    <string name="today_originally_scheduled">Programada originalmente %1$s</string>
+    <string name="today_relative_ago">hace %1$s</string>
+    <string name="today_postpone_options_title">Posponer hasta…</string>
+    <string name="today_streak_chip">Racha %1$d días</string>
+    <string name="today_streak_chip_cd">Racha de adherencia: %1$d días consecutivos</string>
+    <string name="today_snackbar_marked_taken">Dosis marcada como tomada</string>
+    <string name="today_snackbar_unmarked_taken">Marca de tomada quitada</string>
+    <string name="today_snackbar_postponed_30">Pospuesta 30 minutos</string>
+    <string name="today_snackbar_postponed_60">Pospuesta 1 hora</string>
+    <string name="today_snackbar_postponed_120">Pospuesta 2 horas</string>
+    <string name="today_snackbar_postponed_other">Dosis pospuesta</string>
+    <string name="today_snackbar_undo">Deshacer</string>
+    <string name="today_postpone_option_30min">30 minutos</string>
+    <string name="today_postpone_option_1h">1 hora</string>
+    <string name="today_postpone_option_2h">2 horas</string>
+    <string name="today_postpone_option_tonight">Esta noche (22:00)</string>
     <string name="today_hour_header">%1$s h</string>
     <string name="today_mark_missed_taken">Marcar como tomada</string>
     <string name="day_empty">No hay medicaciones programadas para esta fecha.</string>
@@ -144,11 +178,19 @@
     <string name="day_read_only_hint">Estás consultando otra fecha. Aquí solo puedes revisar las tomas.</string>
     <string name="day_status_good">Bueno</string>
     <string name="day_status_regular">Regular</string>
-    <string name="day_status_bad">Por mejorar</string>
+    <string name="day_status_bad">Aún a tiempo</string>
     <string name="day_message_no_doses">No hay dosis programadas para esta fecha.</string>
-    <string name="day_message_good">Adherencia del día: %1$d%%. Muy bien.</string>
-    <string name="day_message_regular">Adherencia del día: %1$d%%. Vas bien.</string>
-    <string name="day_message_bad">Adherencia del día: %1$d%%. Revisa las dosis pendientes.</string>
+    <string name="day_message_good">Vas muy bien: %1$d%% de tus dosis al día.</string>
+    <string name="day_message_regular">Llevas %1$d%% del día. Sigue así.</string>
+    <string name="day_message_bad">Aún puedes ponerte al día. Empieza por la próxima dosis.</string>
+    <string name="day_summary_adherence_label">Adherencia hoy</string>
+    <string name="day_summary_dose_count">%1$d / %2$d dosis</string>
+    <string name="day_message_urgent">%1$d dosis pendientes — empieza con las urgentes</string>
+    <string name="day_message_pending">Te quedan %1$d dosis para hoy</string>
+    <string name="day_message_all_done">¡Todo al día! Buen trabajo.</string>
+    <string name="today_section_needs_attention">REQUIEREN ATENCIÓN</string>
+    <string name="today_section_upcoming">PRÓXIMAS</string>
+    <string name="today_section_taken">TOMADAS</string>
     <string name="today_taken_status_cd">La toma de %1$s de las %2$s ya está marcada como tomada.</string>
     <string name="today_mark_taken_for_cd">Marcar la toma de %1$s de las %2$s como tomada.</string>
 
@@ -161,6 +203,10 @@
     <string name="medications_edit_item_cd">Editar %1$s</string>
     <string name="medications_delete_item_cd">Eliminar %1$s</string>
     <string name="medications_restock_item_cd">Añadir cantidad a %1$s</string>
+    <string name="medications_more_actions_cd">Más acciones para %1$s</string>
+    <string name="medications_restock_short_action">Stock</string>
+    <string name="medications_edit_menu_action">Editar</string>
+    <string name="medications_delete_menu_action">Eliminar</string>
     <string name="medications_stock_remaining">Stock: %1$s de %2$s disponibles</string>
     <string name="medications_stock_progress_cd">Cantidad disponible: %1$s</string>
     <string name="medications_delete_confirm_title">Eliminar medicamento</string>
@@ -180,7 +226,8 @@
     <string name="add_medication_quantity_section_title">Cantidad disponible</string>
     <string name="add_medication_show_quantity_button">Añadir control de cantidad</string>
     <string name="add_medication_hide_quantity_button">Quitar control de cantidad</string>
-    <string name="add_medication_quantity_optional_hint">Este apartado es opcional. Actívalo solo si quieres llevar control de lo que te queda.</string>
+    <string name="add_medication_quantity_tracking_switch">Controlar cantidad disponible</string>
+    <string name="add_medication_quantity_optional_hint">Opcional. Úsalo para controlar cuántas unidades te quedan.</string>
     <string name="add_medication_stock_total_label">Cantidad inicial o total</string>
     <string name="add_medication_stock_remaining_label">Cantidad que te queda</string>
     <string name="add_medication_stock_remaining_placeholder">Si lo dejas vacío, se usará la cantidad inicial</string>
@@ -193,6 +240,10 @@
     <string name="add_medication_start_time_placeholder">Toca para seleccionar la hora de inicio</string>
     <string name="add_medication_days_label">Selecciona los días</string>
     <string name="add_medication_interval_label">Cada cuántas horas (1–24)</string>
+    <string name="add_medication_schedule_summary_daily">Se avisará cada día a las %1$s.</string>
+    <string name="add_medication_schedule_summary_specific_days">Se avisará los días elegidos a las %1$s.</string>
+    <string name="add_medication_schedule_summary_interval">Se avisará cada %1$s horas desde las %2$s.</string>
+    <string name="add_medication_schedule_summary_missing_time">Elige una hora para ver el resumen del horario.</string>
     <string name="add_medication_save">Guardar</string>
 
     <!-- Time Picker -->
@@ -246,6 +297,10 @@
     <string name="simple_mode_taken_section">Tomadas</string>
     <string name="simple_mode_taken_button">Confirmar toma</string>
     <string name="simple_mode_taken_cd">Tomada</string>
+    <string name="simple_mode_postpone_button">Posponer 30 min</string>
+    <string name="simple_mode_postpone_cd">Posponer %1$s 30 minutos</string>
+    <string name="simple_mode_taken_at">Tomada a las %1$s</string>
+    <string name="simple_mode_postponed_until">Pospuesta hasta las %1$s</string>
     <string name="simple_mode_pending_count">Pendientes: %1$d</string>
     <string name="simple_mode_missed_count">Olvidadas: %1$d</string>
     <string name="simple_mode_taken_summary">Tomadas hoy: %1$d</string>
@@ -268,26 +323,53 @@
     <string name="notification_body">Es hora de tomar %1$s (%2$s).\nHorario programado: %3$s</string>
     <string name="notification_private_preview_title">Recordatorio privado</string>
     <string name="notification_private_preview_body">Abre Saludario para ver los detalles.</string>
-    <string name="notification_action_taken">Tomada</string>
-    <string name="notification_action_postpone">Posponer</string>
+    <string name="notification_action_taken">Confirmar</string>
+    <string name="notification_action_postpone">30 min más tarde</string>
+    <string name="notification_action_skip">Omitir</string>
     <string name="low_stock_notification_title">Quedan pocas unidades</string>
     <string name="low_stock_notification_message">Te quedan pocas pastillas de %1$s</string>
     <string name="low_stock_notification_private_preview_title">Aviso privado</string>
 
+    <!-- Reminder reliability -->
+    <string name="reliability_title">Asegura tus recordatorios</string>
+    <string name="reliability_subtitle">Comprueba que el sistema permitirá que tus avisos suenen siempre a tiempo.</string>
+    <string name="reliability_all_ok_title">Todo en orden</string>
+    <string name="reliability_all_ok_body">Tus recordatorios están configurados para sonar a tiempo.</string>
+    <string name="reliability_card_notifications_title">Permitir notificaciones</string>
+    <string name="reliability_card_notifications_body_ok">Las notificaciones están permitidas.</string>
+    <string name="reliability_card_notifications_body_ko">Sin este permiso, no podrás recibir avisos de tus tomas.</string>
+    <string name="reliability_card_battery_title">Sin restricciones de batería</string>
+    <string name="reliability_card_battery_body_ok">La app no se verá afectada por el ahorro de batería.</string>
+    <string name="reliability_card_battery_body_ko">El sistema podría retrasar tus avisos al ahorrar batería. Permite que la app funcione sin restricciones.</string>
+    <string name="reliability_card_exact_title">Permitir alarmas exactas</string>
+    <string name="reliability_card_exact_body_ok">La app puede programar avisos en el minuto exacto.</string>
+    <string name="reliability_card_exact_body_ko">Sin este permiso, los avisos podrían sonar con varios minutos de retraso.</string>
+    <string name="reliability_action_open_settings">Configurar</string>
+    <string name="reliability_action_review">Revisar</string>
+    <string name="reliability_status_ok_cd">Todo correcto</string>
+    <string name="reliability_status_ko_cd">Acción necesaria</string>
+    <string name="reliability_banner_title">Tus recordatorios podrían no sonar a tiempo</string>
+    <string name="reliability_banner_body">Hay %1$d ajuste(s) pendiente(s) para asegurar que los avisos lleguen.</string>
+    <string name="reliability_banner_dismiss_cd">Descartar aviso</string>
+    <string name="settings_reliability_entry_title">Asegura tus recordatorios</string>
+    <string name="settings_reliability_entry_body">Comprueba permisos y batería para que tus avisos suenen siempre.</string>
+    <string name="settings_reliability_entry_status_ok">Todo correcto</string>
+    <string name="settings_reliability_entry_status_ko">%1$d pendientes</string>
+
     <!-- Insights -->
-    <string name="insight_missed_with_hour">Olvidas con frecuencia la toma de las %1$s. Considera cambiar la hora o poner una alarma adicional.</string>
-    <string name="insight_missed_generic">Intenta asociar la toma a una rutina diaria (desayuno, comida, cena).</string>
-    <string name="insight_missed_message">Has olvidado %1$s un %2$d%% de las veces (%3$d de %4$d dosis).</string>
-    <string name="insight_delay_with_suggestion">Normalmente tomas %1$s a las %2$s en lugar de a las %3$s. Considera cambiar la hora programada.</string>
-    <string name="insight_delay_generic">Intenta tomar %1$s a la hora programada para mantener su eficacia.</string>
-    <string name="insight_delay_message">Tomas %1$s con un retraso promedio de %2$s.</string>
-    <string name="insight_adherence_message">Excelente adherencia con %1$s: %2$d%% de dosis tomadas.</string>
+    <string name="insight_missed_with_hour">Sueles olvidar la toma de las %1$s. Cambia la hora o pon una alarma extra.</string>
+    <string name="insight_missed_generic">Asocia la toma a una rutina diaria (desayuno, comida, cena).</string>
+    <string name="insight_missed_message">Olvidada el %2$d%% de las veces · %3$d de %4$d dosis.</string>
+    <string name="insight_delay_with_suggestion">Sueles tomarla a las %2$s, no a las %3$s. Considera cambiar la hora programada.</string>
+    <string name="insight_delay_generic">Tómala a la hora programada para mantener su eficacia.</string>
+    <string name="insight_delay_message">Retraso medio: %2$s</string>
+    <string name="insight_adherence_message">Adherencia del %2$d%% · vas al día.</string>
     <string name="insight_adherence_detail">%1$d de %2$d dosis tomadas.</string>
-    <string name="insight_low_stock_critical_message">Te quedan muy pocas pastillas de %1$s</string>
-    <string name="insight_low_stock_warning_message">Te quedan pocas pastillas de %1$s</string>
+    <string name="insight_low_stock_critical_message">Quedan muy pocas unidades</string>
+    <string name="insight_low_stock_warning_message">Quedan pocas unidades</string>
     <string name="insight_low_stock_percentage_remaining">Queda aproximadamente el %1$d%% de la cantidad configurada.</string>
-    <string name="insight_low_stock_days_unknown">Aún no hay suficientes tomas registradas para estimar cuántos días quedan.</string>
-    <string name="insight_low_stock_suggestion">Añade más unidades de %1$s para no quedarte sin medicación.</string>
+    <string name="insight_low_stock_days_unknown">Aún no hay tomas suficientes para estimar cuántos días quedan.</string>
+    <string name="insight_low_stock_suggestion">Añade más unidades para no quedarte sin medicación.</string>
     <string name="duration_hours_minutes">%1$s y %2$s</string>
 
     <plurals name="insight_low_stock_days_remaining">
@@ -307,8 +389,13 @@
 
     <!-- Schedule format -->
     <!-- Insights Screen -->
-    <string name="insights_title">Análisis de adherencia</string>
-    <string name="insights_subtitle">Resumen automático de olvidos, retrasos y avisos de cantidad baja.</string>
+    <string name="insights_title">Análisis</string>
+    <string name="insights_subtitle">Resumen automático de olvidos, retrasos y avisos de stock.</string>
+    <string name="insights_summary_missed">%1$d olvidos</string>
+    <string name="insights_summary_delays">%1$d retrasos</string>
+    <string name="insights_summary_low_stock">%1$d sin stock</string>
+    <string name="insights_summary_all_clear">Sin avisos · vas al día</string>
+    <string name="insights_dismiss_cd">Ocultar aviso</string>
     <string name="insights_empty">Aún no hay suficiente información para mostrar patrones. Sigue registrando tus tomas unos días más.</string>
     <string name="insights_empty_filtered">No hay resultados para este filtro. Prueba con otro tipo de insight o limpia los filtros.</string>
     <string name="insights_loading_cd">Cargando análisis</string>
@@ -351,4 +438,6 @@
     <string name="msg_error_stock_reload">No se pudo actualizar la cantidad</string>
 
     <string name="schedule_format">%1$s · %2$s</string>
+    <string name="onboarding_page_indicator_cd">Ir a la página %1$d de %2$d</string>
+    <string name="health_open_type_cd">Abrir registros de %1$s</string>
 </resources>

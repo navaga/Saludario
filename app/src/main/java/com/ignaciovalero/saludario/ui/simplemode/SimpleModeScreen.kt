@@ -39,6 +39,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,12 +67,13 @@ import com.ignaciovalero.saludario.ui.today.TodayUiState
 fun SimpleModeScreen(
     uiState: TodayUiState,
     onConfirmTaken: (medicationId: Long, time: String) -> Unit,
+    onPostpone: (medicationId: Long, time: String) -> Unit,
     onExitSimpleMode: () -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
-    val pending = uiState.scheduledItems.filter { it.isPending }
+    val pending = uiState.scheduledItems.filter { it.isPending || it.isPostponed }
     val missed = uiState.scheduledItems.filter { it.isMissed }
     val taken = uiState.scheduledItems.filter { it.isTaken }
     val takenCount = taken.size
@@ -139,7 +142,8 @@ fun SimpleModeScreen(
                     items(pending, key = { "p_${it.medicationId}_${it.time}" }) { item ->
                         SimpleMedicationCard(
                             item = item,
-                            onConfirm = { onConfirmTaken(item.medicationId, item.time) }
+                            onConfirm = { onConfirmTaken(item.medicationId, item.time) },
+                            onPostpone = { onPostpone(item.medicationId, item.time) }
                         )
                     }
                 }
@@ -157,7 +161,8 @@ fun SimpleModeScreen(
                     items(missed, key = { "m_${it.medicationId}_${it.time}" }) { item ->
                         SimpleMedicationCard(
                             item = item,
-                            onConfirm = { onConfirmTaken(item.medicationId, item.time) }
+                            onConfirm = { onConfirmTaken(item.medicationId, item.time) },
+                            onPostpone = { onPostpone(item.medicationId, item.time) }
                         )
                     }
                 }
@@ -186,38 +191,39 @@ fun SimpleModeScreen(
 private fun SimpleMedicationCard(
     item: ScheduledDose,
     onConfirm: () -> Unit,
+    onPostpone: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val localizedTime = context.localizedLocalTime(item.scheduledAt.toLocalTime())
+    val localizedTime = context.localizedLocalTime(item.effectiveTime.toLocalTime())
     val localizedDosage = context.localizedMedicationDosage(item.medication.dosage, item.medication.unit)
+    val originalScheduledLocalized = context.localizedLocalTime(item.scheduledAt.toLocalTime())
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val pendingContainer = if (isDarkTheme) MedicationPendingContainerDark else MedicationPendingContainerLight
     val takenContainer = if (isDarkTheme) MedicationTakenContainerDark else MedicationTakenContainerLight
     val missedContainer = if (isDarkTheme) MedicationMissedContainerDark else MedicationMissedContainerLight
-    val confirmContainerColor = when (item.status) {
-        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.error
-        else -> MaterialTheme.colorScheme.primary
-    }
-    val confirmContentColor = when (item.status) {
-        ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onError
-        else -> MaterialTheme.colorScheme.onPrimary
-    }
+    // El botón de confirmación siempre es primario (acción positiva). El estado
+    // "Olvidada" se comunica con el badge y el contenedor rojizo de la tarjeta.
+    val confirmContainerColor = MaterialTheme.colorScheme.primary
+    val confirmContentColor = MaterialTheme.colorScheme.onPrimary
     val statusLabel = when (item.status) {
         ScheduledDoseStatus.TAKEN -> stringResource(R.string.today_status_taken)
         ScheduledDoseStatus.MISSED -> stringResource(R.string.today_status_missed)
         ScheduledDoseStatus.PENDING -> stringResource(R.string.today_status_pending)
+        ScheduledDoseStatus.POSTPONED -> stringResource(R.string.today_status_postponed)
     }
     val statusContainerColor = when (item.status) {
         ScheduledDoseStatus.TAKEN -> MaterialTheme.colorScheme.primaryContainer
         ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.errorContainer
         ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.secondaryContainer
+        ScheduledDoseStatus.POSTPONED -> MaterialTheme.colorScheme.tertiaryContainer
     }
     val statusContentColor = when (item.status) {
         ScheduledDoseStatus.TAKEN -> MaterialTheme.colorScheme.onPrimaryContainer
         ScheduledDoseStatus.MISSED -> MaterialTheme.colorScheme.onErrorContainer
         ScheduledDoseStatus.PENDING -> MaterialTheme.colorScheme.onSecondaryContainer
+        ScheduledDoseStatus.POSTPONED -> MaterialTheme.colorScheme.onTertiaryContainer
     }
 
     Card(
@@ -228,7 +234,8 @@ private fun SimpleMedicationCard(
             containerColor = when (item.status) {
                 ScheduledDoseStatus.TAKEN -> takenContainer
                 ScheduledDoseStatus.MISSED -> missedContainer
-                ScheduledDoseStatus.PENDING -> pendingContainer
+                ScheduledDoseStatus.PENDING,
+                ScheduledDoseStatus.POSTPONED -> pendingContainer
             }
         ),
         border = androidx.compose.foundation.BorderStroke(
@@ -276,6 +283,16 @@ private fun SimpleMedicationCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            if (item.isPostponed) {
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
+                Text(
+                    text = stringResource(R.string.today_originally_scheduled, originalScheduledLocalized),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
             Spacer(modifier = Modifier.height(AppSpacing.lg + 2.dp))
 
             Button(
@@ -302,6 +319,31 @@ private fun SimpleMedicationCard(
                     text = stringResource(R.string.simple_mode_taken_button),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(AppSpacing.sm))
+
+            val postponeCd = stringResource(R.string.simple_mode_postpone_cd, item.medicationName)
+            Button(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onPostpone()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .semantics { contentDescription = postponeCd },
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.simple_mode_postpone_button),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -338,6 +380,7 @@ private fun CompactTakenItem(
     val context = LocalContext.current
     val localizedTime = context.localizedLocalTime(item.scheduledAt.toLocalTime())
     val localizedDosage = context.localizedMedicationDosage(item.medication.dosage, item.medication.unit)
+    val takenAtLocalized = item.takenAt?.let { context.localizedLocalTime(it.toLocalTime()) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -376,6 +419,14 @@ private fun CompactTakenItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (takenAtLocalized != null) {
+                    Text(
+                        text = stringResource(R.string.simple_mode_taken_at, takenAtLocalized),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }
@@ -407,6 +458,7 @@ private fun SimpleModeScreenPreview() {
                 )
             ),
             onConfirmTaken = { _, _ -> },
+            onPostpone = { _, _ -> },
             onExitSimpleMode = {},
             contentPadding = PaddingValues(0.dp)
         )

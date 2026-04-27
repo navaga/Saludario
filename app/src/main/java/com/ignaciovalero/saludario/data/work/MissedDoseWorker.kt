@@ -1,9 +1,11 @@
 package com.ignaciovalero.saludario.data.work
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.core.DoseConstants.GRACE_PERIOD_MINUTES
 import com.ignaciovalero.saludario.data.local.entity.MedicationStatus
 import java.time.LocalDateTime
 
@@ -16,17 +18,21 @@ class MissedDoseWorker(
         val app = applicationContext as? SaludarioApplication ?: return Result.failure()
         val logRepo = app.container.medicationLogRepository
 
-        val cutoff = LocalDateTime.now().minusMinutes(GRACE_PERIOD_MINUTES)
-        val pendingLogs = logRepo.getPendingBefore(cutoff.toString())
+        return try {
+            val cutoff = LocalDateTime.now().minusMinutes(GRACE_PERIOD_MINUTES)
+            val pendingLogs = logRepo.getPendingBefore(cutoff.toString())
 
-        for (log in pendingLogs) {
-            logRepo.update(log.copy(status = MedicationStatus.MISSED))
+            for (log in pendingLogs) {
+                logRepo.update(log.copy(status = MedicationStatus.MISSED))
+            }
+            Result.success()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error marcando dosis olvidadas", e)
+            Result.retry()
         }
-
-        return Result.success()
     }
 
     companion object {
-        const val GRACE_PERIOD_MINUTES = 60L
+        private const val TAG = "MissedDoseWorker"
     }
 }

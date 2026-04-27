@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.time.LocalTime
 
 class MedicationListViewModel(
@@ -112,14 +113,20 @@ class MedicationListViewModel(
     }
 
     private fun formatQuantity(value: Double): String {
-        return if (value % 1.0 == 0.0) {
-            value.toInt().toString()
-        } else {
-            value.toString().trimEnd('0').trimEnd('.')
+        // Usa el locale activo para que el separador decimal coincida con el
+        // que el usuario usa en el resto de la app (coma en es-ES, punto en en-US).
+        val locale = context.resources.configuration.locales[0]
+        val formatter = NumberFormat.getNumberInstance(locale).apply {
+            minimumFractionDigits = 0
+            maximumFractionDigits = MAX_QUANTITY_DECIMALS
+            isGroupingUsed = false
         }
+        return formatter.format(value)
     }
 
     companion object {
+        private const val MAX_QUANTITY_DECIMALS = 2
+
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as SaludarioApplication

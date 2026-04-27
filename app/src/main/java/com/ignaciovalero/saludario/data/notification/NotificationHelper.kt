@@ -64,6 +64,18 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val skipIntent = Intent(context, NotificationActionReceiver::class.java).apply {
+            action = NotificationActionReceiver.ACTION_SKIP
+            putExtra(NotificationActionReceiver.EXTRA_MEDICATION_ID, medicationId)
+            putExtra(NotificationActionReceiver.EXTRA_SCHEDULED_TIME, scheduledTime)
+        }
+        val skipPending = PendingIntent.getBroadcast(
+            context,
+            (medicationId * 1000 + 3).toInt(),
+            skipIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val contentIntent = context.packageManager
             .getLaunchIntentForPackage(context.packageName)
             ?.let { intent ->
@@ -96,6 +108,7 @@ object NotificationHelper {
             .setContentIntent(contentIntent)
             .addAction(R.drawable.ic_launcher_foreground, context.getString(R.string.notification_action_taken), takenPending)
             .addAction(R.drawable.ic_launcher_foreground, context.getString(R.string.notification_action_postpone), postponePending)
+            .addAction(R.drawable.ic_launcher_foreground, context.getString(R.string.notification_action_skip), skipPending)
     }
 
     fun notificationId(medicationId: Long, scheduledTime: String): Int {

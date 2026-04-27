@@ -40,12 +40,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -66,17 +72,26 @@ fun OnboardingScreen(
 ) {
     var languageExpanded by remember { mutableStateOf(false) }
     val pagerState = rememberPagerState(initialPage = uiState.page, pageCount = { 2 })
+    val currentPage by rememberUpdatedState(uiState.page)
+    val currentOnPageSelected by rememberUpdatedState(onPageSelected)
 
+    // Sincroniza el pager cuando el ViewModel cambia la página (ej. botones).
     LaunchedEffect(uiState.page) {
         if (pagerState.currentPage != uiState.page) {
             pagerState.animateScrollToPage(uiState.page)
         }
     }
 
-    LaunchedEffect(pagerState.settledPage) {
-        if (pagerState.settledPage != uiState.page) {
-            onPageSelected(pagerState.settledPage)
-        }
+    // Notifica al ViewModel cuando el usuario desliza el pager.
+    // Usar snapshotFlow + collect evita que el LaunchedEffect se reinicie en
+    // cada cambio de settledPage y previene posibles ciclos de actualización.
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }
+            .collect { settled ->
+                if (settled != currentPage) {
+                    currentOnPageSelected(settled)
+                }
+            }
     }
 
     Column(
@@ -163,11 +178,13 @@ fun OnboardingScreen(
             ) {
                 IndicatorDot(
                     active = uiState.page == 0,
+                    contentDescription = stringResource(R.string.onboarding_page_indicator_cd, 1, 2),
                     onClick = { onPageSelected(0) }
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 IndicatorDot(
                     active = uiState.page == 1,
+                    contentDescription = stringResource(R.string.onboarding_page_indicator_cd, 2, 2),
                     onClick = { onPageSelected(1) }
                 )
             }
@@ -370,12 +387,17 @@ private fun OnboardingInfoCard(
 @Composable
 private fun IndicatorDot(
     active: Boolean,
+    contentDescription: String,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .width(if (active) 28.dp else 10.dp)
             .height(10.dp)
+            .semantics {
+                this.contentDescription = contentDescription
+                role = Role.Button
+            }
             .clickable(onClick = onClick)
             .background(
                 color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,

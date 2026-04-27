@@ -1,7 +1,9 @@
 package com.ignaciovalero.saludario.ui.addmedication
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,9 +31,10 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -75,6 +78,7 @@ fun AddMedicationScreen(
     onIntervalHoursChange: (String) -> Unit,
     onSave: () -> Unit,
     onSaved: () -> Unit,
+    onBack: () -> Unit,
     onMessageShown: () -> Unit,
     snackbarHostState: SnackbarHostState,
     contentPadding: PaddingValues,
@@ -109,15 +113,26 @@ fun AddMedicationScreen(
             .fillMaxSize()
             .padding(contentPadding)
     ) {
-        TopAppBar(title = {
-            val titleRes = if (uiState.editingId != null) R.string.edit_medication_title
-            else R.string.add_medication_title
-            Text(stringResource(titleRes))
-        })
+        TopAppBar(
+            title = {
+                val titleRes = if (uiState.editingId != null) R.string.edit_medication_title
+                else R.string.add_medication_title
+                Text(stringResource(titleRes))
+            },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back_button_cd)
+                    )
+                }
+            }
+        )
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = AppSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -193,17 +208,26 @@ fun AddMedicationScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    if (showInventoryFields) {
-                        OutlinedButton(
-                            onClick = {
-                                showInventoryFields = false
-                                onClearStockFields()
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(R.string.add_medication_hide_quantity_button))
-                        }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.add_medication_quantity_tracking_switch),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Switch(
+                            checked = showInventoryFields,
+                            onCheckedChange = { checked ->
+                                showInventoryFields = checked
+                                if (!checked) onClearStockFields()
+                            }
+                        )
+                    }
 
+                    if (showInventoryFields) {
                         OutlinedTextField(
                             value = uiState.stockTotal,
                             onValueChange = onStockTotalChange,
@@ -246,12 +270,7 @@ fun AddMedicationScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
                     } else {
-                        OutlinedButton(
-                            onClick = { showInventoryFields = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(R.string.add_medication_show_quantity_button))
-                        }
+                        // Sin campos visibles: el switch mantiene la sección ligera.
                     }
                 }
             }
@@ -274,6 +293,11 @@ fun AddMedicationScreen(
                     FrequencyChips(
                         selected = uiState.scheduleType,
                         onSelect = onScheduleTypeChange
+                    )
+                    Text(
+                        text = scheduleSummary(uiState),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -407,17 +431,24 @@ fun AddMedicationScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(AppSpacing.lg))
+        }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            tonalElevation = 3.dp,
+            color = MaterialTheme.colorScheme.surface
+        ) {
             Button(
                 onClick = onSave,
                 enabled = uiState.isFormReady,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.md)
                     .height(52.dp)
             ) {
                 Text(stringResource(R.string.add_medication_save))
             }
-
-            Spacer(modifier = Modifier.height(AppSpacing.lg))
         }
     }
 
@@ -464,6 +495,27 @@ private fun scheduleTypeLabel(type: MedicationScheduleType): String = when (type
     MedicationScheduleType.DAILY -> stringResource(R.string.schedule_daily)
     MedicationScheduleType.SPECIFIC_DAYS -> stringResource(R.string.schedule_specific_days)
     MedicationScheduleType.INTERVAL -> stringResource(R.string.schedule_interval)
+}
+
+@Composable
+private fun scheduleSummary(uiState: AddMedicationUiState): String {
+    val time = uiState.time.takeIf { it.isNotBlank() }
+        ?: return stringResource(R.string.add_medication_schedule_summary_missing_time)
+    return when (uiState.scheduleType) {
+        MedicationScheduleType.DAILY -> stringResource(
+            R.string.add_medication_schedule_summary_daily,
+            time
+        )
+        MedicationScheduleType.SPECIFIC_DAYS -> stringResource(
+            R.string.add_medication_schedule_summary_specific_days,
+            time
+        )
+        MedicationScheduleType.INTERVAL -> stringResource(
+            R.string.add_medication_schedule_summary_interval,
+            uiState.intervalHours.ifBlank { "-" },
+            time
+        )
+    }
 }
 
 @Composable
@@ -556,6 +608,7 @@ private fun AddMedicationScreenPreview() {
             onIntervalHoursChange = {},
             onSave = {},
             onSaved = {},
+            onBack = {},
             onMessageShown = {},
             snackbarHostState = androidx.compose.material3.SnackbarHostState(),
             contentPadding = PaddingValues(0.dp)

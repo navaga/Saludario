@@ -108,6 +108,9 @@ fun HealthDetailScreen(
             contentPadding = PaddingValues(AppSpacing.lg),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
+            item(key = "health-detail-disclaimer") {
+                HealthDisclaimerBanner()
+            }
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -142,7 +145,15 @@ fun HealthDetailScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             isError = uiState.primaryError != null,
                             supportingText = uiState.primaryError?.let { errorRes ->
-                                { Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error) }
+                                {
+                                    val args = uiState.primaryErrorArgs
+                                    val text = if (args != null) {
+                                        stringResource(errorRes, *args.toTypedArray())
+                                    } else {
+                                        stringResource(errorRes)
+                                    }
+                                    Text(text, color = MaterialTheme.colorScheme.error)
+                                }
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -156,7 +167,15 @@ fun HealthDetailScreen(
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                 isError = uiState.secondaryError != null,
                                 supportingText = uiState.secondaryError?.let { errorRes ->
-                                    { Text(stringResource(errorRes), color = MaterialTheme.colorScheme.error) }
+                                    {
+                                        val args = uiState.secondaryErrorArgs
+                                        val text = if (args != null) {
+                                            stringResource(errorRes, *args.toTypedArray())
+                                        } else {
+                                            stringResource(errorRes)
+                                        }
+                                        Text(text, color = MaterialTheme.colorScheme.error)
+                                    }
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             )

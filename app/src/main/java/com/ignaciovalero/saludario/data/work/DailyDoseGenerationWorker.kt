@@ -1,9 +1,11 @@
 package com.ignaciovalero.saludario.data.work
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.core.DoseConstants.GRACE_PERIOD_MINUTES
 import com.ignaciovalero.saludario.data.local.entity.MedicationLogEntity
 import com.ignaciovalero.saludario.data.local.entity.MedicationScheduleType
 import com.ignaciovalero.saludario.data.local.entity.MedicationStatus
@@ -20,36 +22,54 @@ class DailyDoseGenerationWorker(
         val medicationRepo = app.container.medicationRepository
         val logRepo = app.container.medicationLogRepository
 
-        val today = LocalDate.now()
-        val activeMedications = medicationRepo.getActiveForDate(today.toString())
+        return try {
+            val today = LocalDate.now()
+            val now = LocalDateTime.now()
+            val activeMedications = medicationRepo.getActiveForDate(today.toString())
 
-        for (medication in activeMedications) {
-            // Skip SPECIFIC_DAYS medications that don't match today's day of week
-            if (medication.scheduleType == MedicationScheduleType.SPECIFIC_DAYS) {
-                val selectedDays = medication.specificDays ?: continue
-                if (today.dayOfWeek !in selectedDays) continue
-            }
+            for (medication in activeMedications) {
+                // Skip SPECIFIC_DAYS medications that don't match today's day of week
+                if (medication.scheduleType == MedicationScheduleType.SPECIFIC_DAYS) {
+                    val selectedDays = medication.specificDays ?: continue
+                    if (today.dayOfWeek !in selectedDays) continue
+                }
 
-            for (time in medication.times) {
-                val scheduledDateTime = LocalDateTime.of(today, time)
-                val scheduledTimeStr = scheduledDateTime.toString()
+                for (time in medication.times) {
+                    val scheduledDateTime = LocalDateTime.of(today, time)
 
-                val existing = logRepo.getByMedicationAndScheduledTime(
-                    medication.id,
-                    scheduledTimeStr
-                )
-                if (existing == null) {
-                    logRepo.insert(
-                        MedicationLogEntity(
-                            medicationId = medication.id,
-                            scheduledTime = scheduledDateTime,
-                            status = MedicationStatus.PENDING
-                        )
+                    // Si la medicación empieza hoy y la hora ya pasó el periodo de gracia,
+                    // no crear log para evitar que aparezca como olvidada al añadirla tarde
+                    if (medication.startDate == today &&
+                        scheduledDateTime.plusMinutes(GRACE_PERIOD_MINUTES).isBefore(now)
+                    ) {
+                        continue
+                    }
+
+                    val scheduledTimeStr = scheduledDateTime.toString()
+
+                    val existing = logRepo.getByMedicationAndScheduledTime(
+                        medication.id,
+                        scheduledTimeStr
                     )
+                    if (existing == null) {
+                        logRepo.insert(
+                            MedicationLogEntity(
+                                medicationId = medication.id,
+                                scheduledTime = scheduledDateTime,
+                                status = MedicationStatus.PENDING
+                            )
+                        )
+                    }
                 }
             }
+            Result.success()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error generando dosis diarias", e)
+            Result.retry()
         }
+    }
 
-        return Result.success()
+    companion object {
+        private const val TAG = "DailyDoseGenWorker"
     }
 }

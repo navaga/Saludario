@@ -35,6 +35,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -66,6 +70,9 @@ fun HealthScreen(
             contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
             verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
+            item(key = "health-disclaimer") {
+                HealthDisclaimerBanner()
+            }
             items(types, key = { it.name }) { type ->
                 HealthTypeCard(
                     type = type,
@@ -85,10 +92,15 @@ private fun HealthTypeCard(
     modifier: Modifier = Modifier
 ) {
     val (icon, label) = type.toUi()
+    val openCd = stringResource(R.string.health_open_type_cd, label)
 
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .semantics {
+                contentDescription = openCd
+                role = Role.Button
+            }
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),

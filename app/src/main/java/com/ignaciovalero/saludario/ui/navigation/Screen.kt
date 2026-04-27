@@ -24,6 +24,7 @@ sealed class Screen(
     data object Health : Screen("health", R.string.nav_health, Icons.Default.MonitorHeart)
     data object Settings : Screen("settings", R.string.nav_settings, Icons.Default.Settings)
     data object PrivacyPolicy : Screen("privacy_policy", R.string.privacy_policy_title, Icons.Default.Settings)
+    data object ReminderReliability : Screen("reminder_reliability", R.string.reliability_title, Icons.Default.Settings)
     data object HealthDetail : Screen("health_detail/{type}", R.string.nav_health, Icons.Default.MonitorHeart) {
         fun createRoute(type: String) = "health_detail/$type"
     }
