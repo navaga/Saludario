@@ -27,6 +27,10 @@
     <string name="settings_tutorials_description">Tap here to show the tutorials for all screens again.</string>
     <string name="settings_reset_tutorials">Show tutorials again</string>
     <string name="settings_reset_done">Tutorials reset</string>
+    <string name="settings_replay_onboarding_title">Replay the welcome tour</string>
+    <string name="settings_replay_onboarding_description">Show the initial app tour, the medical notice and permission steps again.</string>
+    <string name="settings_replay_onboarding_action">Replay welcome tour</string>
+    <string name="settings_replay_onboarding_done">It will appear when you go back to the main screen.</string>
     <string name="settings_privacy_title">Privacy policy</string>
     <string name="settings_privacy_description">Review inside the app how data and notifications are handled.</string>
     <string name="settings_open_privacy_policy">View privacy policy</string>
@@ -54,9 +58,21 @@
     <string name="onboarding_legal_title">Important notice</string>
     <string name="onboarding_legal_body">Saludario is a personal support tool. It does not provide medical advice, diagnosis, or treatment. It does not replace professional healthcare. Always consult a doctor if you have health concerns.</string>
     <string name="onboarding_legal_checkbox">I understand and accept that this app is a support tool and not a medical service.</string>
+    <string name="onboarding_legal_privacy_link">Read privacy policy</string>
+    <string name="onboarding_notifications_title">Reminders on time</string>
+    <string name="onboarding_notifications_body">Saludario lets you know about each dose and when stock starts running low. To do that it needs permission to send notifications.</string>
+    <string name="onboarding_notifications_hint">You can change this later from your system settings.</string>
+    <string name="onboarding_notifications_allow">Allow notifications</string>
+    <string name="onboarding_notifications_skip">Not now</string>
+    <string name="onboarding_notifications_granted">Notifications enabled</string>
+    <string name="onboarding_notifications_denied">Without notifications, reminders will not be shown automatically.</string>
+    <string name="onboarding_reliability_title">Alarm reliability</string>
+    <string name="onboarding_reliability_body">Some phones delay or silence alarms to save battery. If you notice that a reminder does not arrive on time, you can fix it from Settings → Reminder reliability.</string>
+    <string name="onboarding_reliability_hint">We will warn you in the app if we detect that battery saving may affect your reminders.</string>
     <string name="onboarding_start_now">Continue</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_accept_continue">Accept and continue</string>
+    <string name="onboarding_finish">Start using Saludario</string>
 
     <string name="nav_today">Today</string>
     <string name="nav_medications">Medications</string>
@@ -129,6 +145,9 @@
 
     <string name="today_title">Today</string>
     <string name="today_empty">There are no medications scheduled for today.</string>
+    <string name="today_no_medications_title">Add your first medication</string>
+    <string name="today_no_medications_body">Start by creating a reminder so you never miss a dose. You can edit or remove it any time.</string>
+    <string name="today_no_medications_cta">Add first medication</string>
     <string name="today_simple_mode_cd">Simple mode</string>
     <string name="today_simple_mode_tooltip">Try simple mode: larger text and easier buttons for anyone who needs a more accessible interface.</string>
     <string name="today_mark_not_taken">Mark as not taken</string>

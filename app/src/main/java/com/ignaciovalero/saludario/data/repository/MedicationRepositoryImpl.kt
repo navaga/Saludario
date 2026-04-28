@@ -51,8 +51,12 @@ class MedicationRepositoryImpl(
         if (amount <= 0.0) return
 
         val medication = medicationDao.getById(medicationId) ?: return
-        val updatedTotal = medication.stockTotal + amount
         val updatedRemaining = medication.stockRemaining + amount
+        // El total inicial se mantiene como referencia. Solo se recalibra si el
+        // restante supera el total previo (te has pasado del tamaño que tenías
+        // configurado, así que ampliamos el máximo para que la barra de
+        // progreso y los avisos de stock bajo sigan teniendo sentido).
+        val updatedTotal = maxOf(medication.stockTotal, updatedRemaining)
 
         medicationDao.updateStockFields(
             medicationId = medicationId,

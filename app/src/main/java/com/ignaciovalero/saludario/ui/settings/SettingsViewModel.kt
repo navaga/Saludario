@@ -86,6 +86,13 @@ class SettingsViewModel(
         }
     }
 
+    fun replayOnboarding() {
+        viewModelScope.launch {
+            userPreferencesDataSource.resetOnboarding()
+            _events.emit(R.string.settings_replay_onboarding_done)
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

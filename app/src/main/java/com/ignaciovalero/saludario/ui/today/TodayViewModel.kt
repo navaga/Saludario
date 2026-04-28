@@ -70,7 +70,8 @@ class TodayViewModel(
                 selectedDate = selectedDate,
                 scheduledItems = items,
                 canModifyIntake = selectedDate == today,
-                streakDays = streak
+                streakDays = streak,
+                hasAnyMedication = medications.isNotEmpty()
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())

@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -110,6 +111,7 @@ fun DayScreen(
     onEnterSimpleMode: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenReliability: () -> Unit,
+    onAddFirstMedication: () -> Unit,
     showSimpleModeHint: Boolean,
     onDismissSimpleModeHint: () -> Unit,
     contentPadding: PaddingValues,
@@ -405,15 +407,24 @@ fun DayScreen(
         }
 
         if (uiState.scheduledItems.isEmpty()) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = stringResource(R.string.day_empty),
-                    style = MaterialTheme.typography.bodyLarge
+            if (!uiState.hasAnyMedication && isToday) {
+                FirstMedicationCallout(
+                    onAddFirstMedication = onAddFirstMedication,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg)
                 )
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.day_empty),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         } else {
             LazyColumn(
@@ -1023,6 +1034,7 @@ private fun TodayScreenPreview() {
             onEnterSimpleMode = {},
             onOpenSettings = {},
             onOpenReliability = {},
+            onAddFirstMedication = {},
             showSimpleModeHint = true,
             onDismissSimpleModeHint = {},
             contentPadding = PaddingValues(0.dp)
@@ -1056,6 +1068,65 @@ private fun StreakChip(days: Int) {
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onTertiaryContainer
         )
+    }
+}
+
+@Composable
+private fun FirstMedicationCallout(
+    onAddFirstMedication: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AppSpacing.lg),
+                verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(40.dp)
+                )
+                Text(
+                    text = stringResource(R.string.today_no_medications_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.today_no_medications_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Button(
+                    onClick = onAddFirstMedication,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(AppSpacing.xs))
+                    Text(text = stringResource(R.string.today_no_medications_cta))
+                }
+            }
+        }
     }
 }
 

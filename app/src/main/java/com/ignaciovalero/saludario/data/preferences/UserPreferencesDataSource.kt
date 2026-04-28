@@ -25,6 +25,15 @@ class UserPreferencesDataSource(
         prefs[ONBOARDING_COMPLETED_KEY] ?: false
     }
 
+    /**
+     * Verdadero cuando el usuario ya ha visto el paso de notificaciones del
+     * onboarding (haya aceptado o no). Sirve para no volver a mostrar el
+     * diálogo global [NotificationPermissionEffect] como modal sorpresa.
+     */
+    val notificationOnboardingPromptHandled: Flow<Boolean> = dataStore.data.map { prefs ->
+        prefs[NOTIFICATION_ONBOARDING_PROMPT_HANDLED_KEY] ?: false
+    }
+
     val preferredLanguageCode: Flow<String> = dataStore.data.map { prefs ->
         prefs[PREFERRED_LANGUAGE_KEY] ?: DEFAULT_LANGUAGE
     }
@@ -62,6 +71,24 @@ class UserPreferencesDataSource(
     suspend fun setOnboardingCompleted(completed: Boolean) {
         dataStore.edit { prefs ->
             prefs[ONBOARDING_COMPLETED_KEY] = completed
+        }
+    }
+
+    suspend fun setNotificationOnboardingPromptHandled(handled: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[NOTIFICATION_ONBOARDING_PROMPT_HANDLED_KEY] = handled
+        }
+    }
+
+    /**
+     * Marca el onboarding como pendiente para que vuelva a mostrarse al volver
+     * a abrir la app. Conserva el idioma preferido para no forzar al usuario a
+     * volver a elegirlo.
+     */
+    suspend fun resetOnboarding() {
+        dataStore.edit { prefs ->
+            prefs.remove(ONBOARDING_COMPLETED_KEY)
+            prefs.remove(NOTIFICATION_ONBOARDING_PROMPT_HANDLED_KEY)
         }
     }
 
@@ -212,6 +239,8 @@ class UserPreferencesDataSource(
     private companion object {
         val SIMPLE_MODE_KEY = booleanPreferencesKey("simple_mode")
         val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
+        val NOTIFICATION_ONBOARDING_PROMPT_HANDLED_KEY =
+            booleanPreferencesKey("notification_onboarding_prompt_handled")
         val PREFERRED_LANGUAGE_KEY = stringPreferencesKey("preferred_language")
         val DARK_MODE_ENABLED_KEY = booleanPreferencesKey("dark_mode_enabled")
         val AD_CONSENT_STATUS_KEY = stringPreferencesKey("ad_consent_status")

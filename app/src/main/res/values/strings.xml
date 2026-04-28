@@ -28,6 +28,10 @@
     <string name="settings_tutorials_description">Si lo pulsas, volverán a mostrarse los tutoriales de todas las pantallas.</string>
     <string name="settings_reset_tutorials">Volver a mostrar tutoriales</string>
     <string name="settings_reset_done">Tutoriales restablecidos</string>
+    <string name="settings_replay_onboarding_title">Volver a ver el tutorial inicial</string>
+    <string name="settings_replay_onboarding_description">Muestra de nuevo la presentación inicial de la app, el aviso médico y los pasos de permisos.</string>
+    <string name="settings_replay_onboarding_action">Volver a ver el tutorial inicial</string>
+    <string name="settings_replay_onboarding_done">Se mostrará al volver a la pantalla principal.</string>
     <string name="settings_privacy_title">Política de privacidad</string>
     <string name="settings_privacy_description">Consulta dentro de la app cómo se gestionan los datos y las notificaciones.</string>
     <string name="settings_open_privacy_policy">Ver política de privacidad</string>
@@ -55,9 +59,21 @@
     <string name="onboarding_legal_title">Aviso importante</string>
     <string name="onboarding_legal_body">Saludario es una herramienta de apoyo personal. No ofrece consejos médicos, diagnósticos ni tratamientos. No sustituye la atención profesional. Consulta siempre a un médico ante dudas de salud.</string>
     <string name="onboarding_legal_checkbox">Entiendo y acepto que esta app es una herramienta de ayuda y no un servicio médico.</string>
+    <string name="onboarding_legal_privacy_link">Leer política de privacidad</string>
+    <string name="onboarding_notifications_title">Recordatorios a tiempo</string>
+    <string name="onboarding_notifications_body">Saludario te avisa de cada toma y cuando el stock empieza a bajar. Para ello necesita permiso para enviar notificaciones.</string>
+    <string name="onboarding_notifications_hint">Puedes cambiarlo más tarde desde los ajustes del sistema.</string>
+    <string name="onboarding_notifications_allow">Permitir notificaciones</string>
+    <string name="onboarding_notifications_skip">Ahora no</string>
+    <string name="onboarding_notifications_granted">Notificaciones activadas</string>
+    <string name="onboarding_notifications_denied">Sin notificaciones, los recordatorios no se mostrarán automáticamente.</string>
+    <string name="onboarding_reliability_title">Fiabilidad de las alarmas</string>
+    <string name="onboarding_reliability_body">Algunos móviles retrasan o silencian alarmas para ahorrar batería. Si notas que un recordatorio no llega a tiempo, podrás arreglarlo desde Ajustes → Fiabilidad de recordatorios.</string>
+    <string name="onboarding_reliability_hint">Te avisaremos en la app si detectamos que el ahorro de batería puede afectar a tus recordatorios.</string>
     <string name="onboarding_start_now">Continuar</string>
     <string name="onboarding_back">Atrás</string>
     <string name="onboarding_accept_continue">Aceptar y continuar</string>
+    <string name="onboarding_finish">Empezar a usar Saludario</string>
 
     <!-- Navigation -->
     <string name="nav_today">Hoy</string>
@@ -133,6 +149,9 @@
     <!-- Today Screen -->
     <string name="today_title">Hoy</string>
     <string name="today_empty">No hay medicaciones programadas para hoy.</string>
+    <string name="today_no_medications_title">Añade tu primer medicamento</string>
+    <string name="today_no_medications_body">Empieza creando un recordatorio para no olvidar ninguna toma. Podrás editarlo o eliminarlo cuando quieras.</string>
+    <string name="today_no_medications_cta">Añadir primer medicamento</string>
     <string name="today_simple_mode_cd">Modo simple</string>
     <string name="today_simple_mode_tooltip">Prueba el modo simple: texto más grande y botones más fáciles para quien necesite una interfaz más accesible.</string>
     <string name="today_mark_not_taken">Marcar como no tomado</string>

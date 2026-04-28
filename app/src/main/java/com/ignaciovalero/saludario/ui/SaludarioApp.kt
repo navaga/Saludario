@@ -71,6 +71,7 @@ fun SaludarioApp() {
     val onboardingViewModel: OnboardingViewModel = viewModel(factory = OnboardingViewModel.Factory)
     val onboardingCompleted by onboardingViewModel.onboardingCompleted.collectAsState()
     val onboardingState by onboardingViewModel.uiState.collectAsState()
+    val notificationPromptHandled by onboardingViewModel.notificationPromptHandled.collectAsState()
 
     // null = DataStore aún cargando → no mostrar nada para evitar flash
     if (onboardingCompleted == null) return
@@ -83,12 +84,18 @@ fun SaludarioApp() {
             onNext = onboardingViewModel::nextPage,
             onBack = onboardingViewModel::previousPage,
             onAcceptedDisclaimerChange = onboardingViewModel::setAcceptedDisclaimer,
+            onNotificationDecisionChange = onboardingViewModel::setNotificationDecision,
             onComplete = onboardingViewModel::completeOnboarding
         )
         return
     }
 
-    NotificationPermissionEffect()
+    // Solo solicitamos el permiso aquí para usuarios que ya tenían el onboarding
+    // completado antes de añadirse el paso dedicado. Para nuevos usuarios el
+    // permiso se gestiona dentro del onboarding y este efecto se omite.
+    if (!notificationPromptHandled) {
+        NotificationPermissionEffect()
+    }
 
     val simpleModeViewModel: SimpleModeViewModel = viewModel(factory = SimpleModeViewModel.Factory)
     val isSimpleMode by simpleModeViewModel.isSimpleMode.collectAsState()
@@ -247,6 +254,7 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                         onEnterSimpleMode = onEnterSimpleMode,
                         onOpenSettings = { navController.navigate(Screen.Settings.route) },
                         onOpenReliability = { navController.navigate(Screen.ReminderReliability.route) },
+                        onAddFirstMedication = { navController.navigate(Screen.AddMedication.route) },
                         showSimpleModeHint = showSimpleModeHint,
                         onDismissSimpleModeHint = {
                             tutorialViewModel.onUnderstood(TutorialScreen.SIMPLE_MODE_HINT)

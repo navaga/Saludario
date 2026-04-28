@@ -21,8 +21,13 @@ import kotlinx.coroutines.launch
 data class OnboardingUiState(
     val page: Int = 0,
     val languageCode: String = "",
-    val acceptedDisclaimer: Boolean = false
+    val acceptedDisclaimer: Boolean = false,
+    val notificationDecision: NotificationDecision = NotificationDecision.PENDING
 )
+
+enum class NotificationDecision {
+    PENDING, GRANTED, SKIPPED
+}
 
 class OnboardingViewModel(
     private val userPreferencesDataSource: UserPreferencesDataSource
@@ -32,6 +37,15 @@ class OnboardingViewModel(
     val onboardingCompleted: StateFlow<Boolean?> = userPreferencesDataSource.onboardingCompleted
         .map<Boolean, Boolean?> { it }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /**
+     * Indica si el paso de notificaciones del onboarding ya se ha mostrado.
+     * Sirve para que [com.ignaciovalero.saludario.ui.permissions.NotificationPermissionEffect]
+     * no vuelva a aparecer como modal sorpresa después del onboarding.
+     */
+    val notificationPromptHandled: StateFlow<Boolean> = userPreferencesDataSource
+        .notificationOnboardingPromptHandled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private val localState = MutableStateFlow(OnboardingUiState())
 
@@ -56,7 +70,7 @@ class OnboardingViewModel(
     }
 
     fun nextPage() {
-        localState.update { it.copy(page = (it.page + 1).coerceAtMost(1)) }
+        localState.update { it.copy(page = (it.page + 1).coerceAtMost(LAST_PAGE)) }
     }
 
     fun previousPage() {
@@ -64,11 +78,15 @@ class OnboardingViewModel(
     }
 
     fun setPage(page: Int) {
-        localState.update { it.copy(page = page.coerceIn(0, 1)) }
+        localState.update { it.copy(page = page.coerceIn(0, LAST_PAGE)) }
     }
 
     fun setAcceptedDisclaimer(accepted: Boolean) {
         localState.update { it.copy(acceptedDisclaimer = accepted) }
+    }
+
+    fun setNotificationDecision(decision: NotificationDecision) {
+        localState.update { it.copy(notificationDecision = decision) }
     }
 
     fun completeOnboarding() {
@@ -76,11 +94,15 @@ class OnboardingViewModel(
         if (!current.acceptedDisclaimer) return
 
         viewModelScope.launch {
+            userPreferencesDataSource.setNotificationOnboardingPromptHandled(true)
             userPreferencesDataSource.setOnboardingCompleted(true)
         }
     }
 
     companion object {
+        const val ONBOARDING_PAGE_COUNT = 4
+        private const val LAST_PAGE = ONBOARDING_PAGE_COUNT - 1
+
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as SaludarioApplication
