@@ -1,15 +1,18 @@
 package com.ignaciovalero.saludario.data.repository
 
+import android.content.Context
 import com.ignaciovalero.saludario.data.local.dao.MedicationDao
 import com.ignaciovalero.saludario.data.local.entity.MedicationEntity
 import com.ignaciovalero.saludario.data.notification.LowStockNotifier
 import com.ignaciovalero.saludario.domain.insights.InsightSeverity
 import com.ignaciovalero.saludario.domain.repository.MedicationRepository
+import com.ignaciovalero.saludario.ui.widget.MedicationWidgetUpdater
 import kotlinx.coroutines.flow.Flow
 
 class MedicationRepositoryImpl(
     private val medicationDao: MedicationDao,
-    private val lowStockNotifier: LowStockNotifier
+    private val lowStockNotifier: LowStockNotifier,
+    private val appContext: Context? = null
 ) : MedicationRepository {
 
     override fun observeAll(): Flow<List<MedicationEntity>> =
@@ -21,19 +24,27 @@ class MedicationRepositoryImpl(
     override suspend fun getActiveForDate(date: String): List<MedicationEntity> =
         medicationDao.getActiveForDate(date)
 
-    override suspend fun insert(medication: MedicationEntity): Long =
-        medicationDao.insert(medication)
+    override suspend fun insert(medication: MedicationEntity): Long {
+        val id = medicationDao.insert(medication)
+        notifyWidgets()
+        return id
+    }
 
-    override suspend fun update(medication: MedicationEntity) =
+    override suspend fun update(medication: MedicationEntity) {
         medicationDao.update(medication)
+        notifyWidgets()
+    }
 
-    override suspend fun delete(medication: MedicationEntity) =
+    override suspend fun delete(medication: MedicationEntity) {
         medicationDao.delete(medication)
+        notifyWidgets()
+    }
 
     override suspend fun decreaseStockForTakenDose(medicationId: Long) {
         val medication = medicationDao.getById(medicationId) ?: return
         val updatedRemaining = (medication.stockRemaining - medication.dosage).coerceAtLeast(0.0)
         medicationDao.updateStockRemaining(medicationId, updatedRemaining)
+        notifyWidgets()
 
         val severity = lowStockSeverityFor(
             stockRemaining = updatedRemaining,
@@ -64,8 +75,13 @@ class MedicationRepositoryImpl(
             stockRemaining = updatedRemaining,
             lowStockThreshold = medication.lowStockThreshold
         )
+        notifyWidgets()
 
         lowStockNotifier.clear(medicationId)
+    }
+
+    private fun notifyWidgets() {
+        appContext?.let { MedicationWidgetUpdater.refreshAll(it) }
     }
 
     private fun lowStockSeverityFor(

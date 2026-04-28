@@ -62,7 +62,8 @@ class DefaultAppContainer(
     override val medicationRepository: MedicationRepository by lazy {
         MedicationRepositoryImpl(
             medicationDao = database.medicationDao(),
-            lowStockNotifier = lowStockNotifier
+            lowStockNotifier = lowStockNotifier,
+            appContext = context.applicationContext
         )
     }
 
@@ -71,7 +72,10 @@ class DefaultAppContainer(
     }
 
     override val medicationLogRepository: MedicationLogRepository by lazy {
-        MedicationLogRepositoryImpl(database.medicationLogDao())
+        MedicationLogRepositoryImpl(
+            medicationLogDao = database.medicationLogDao(),
+            appContext = context.applicationContext
+        )
     }
 
     override val userPreferencesDataSource: UserPreferencesDataSource by lazy {

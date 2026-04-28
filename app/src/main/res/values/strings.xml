@@ -35,6 +35,13 @@
     <string name="settings_privacy_title">Política de privacidad</string>
     <string name="settings_privacy_description">Consulta dentro de la app cómo se gestionan los datos y las notificaciones.</string>
     <string name="settings_open_privacy_policy">Ver política de privacidad</string>
+    <string name="settings_widgets_title">Widgets en pantalla de inicio</string>
+    <string name="settings_widgets_description">Añade nuestros widgets para ver tu siguiente toma o el resumen del día sin abrir la app.</string>
+    <string name="settings_widgets_add_next_dose">Añadir "Siguiente toma"</string>
+    <string name="settings_widgets_add_today">Añadir "Hoy"</string>
+    <string name="settings_widgets_pin_requested">Solicitud enviada. Confirma en la pantalla de inicio.</string>
+    <string name="settings_widgets_pin_not_supported">Tu launcher no permite fijar widgets desde la app. Mantén pulsada la pantalla de inicio para añadirlos manualmente.</string>
+    <string name="settings_widgets_pin_error">No se ha podido iniciar el flujo para añadir el widget.</string>
     <string name="settings_ads_title">Anuncios y privacidad</string>
     <string name="settings_ads_description">La versión gratuita puede mostrar un anuncio ocasional al abrir una gráfica. Nunca se muestra en Hoy, formularios, notificaciones ni modo simple.</string>
     <string name="settings_ads_consent_unknown">Consentimiento publicitario: pendiente de revisar</string>
@@ -478,4 +485,27 @@
     <string name="schedule_format">%1$s · %2$s</string>
     <string name="onboarding_page_indicator_cd">Ir a la página %1$d de %2$d</string>
     <string name="health_open_type_cd">Abrir registros de %1$s</string>
+
+    <!-- Widgets -->
+    <string name="widget_next_dose_description">Muestra tu siguiente toma de medicación.</string>
+    <string name="widget_today_description">Resumen del día con tomas, progreso y próximas dosis.</string>
+    <string name="widget_status_label_next">Siguiente toma</string>
+    <string name="widget_status_label_upcoming">Próxima toma</string>
+    <string name="widget_status_label_missed">Toma olvidada</string>
+    <string name="widget_status_label_postponed">Toma pospuesta</string>
+    <string name="widget_when_tomorrow">Mañana</string>
+    <string name="widget_next_dose_empty_no_meds_title">Sin medicamentos</string>
+    <string name="widget_next_dose_empty_no_meds_body">Añade un medicamento en Saludario para ver aquí tu próxima toma.</string>
+    <string name="widget_next_dose_all_done_title">Todo al día</string>
+    <string name="widget_next_dose_all_done_body">No quedan tomas pendientes hoy. ¡Buen trabajo!</string>
+    <string name="widget_today_title">Hoy</string>
+    <string name="widget_today_counter_format">%1$d de %2$d tomadas</string>
+    <string name="widget_today_sub_pending">%1$d pendientes</string>
+    <string name="widget_today_sub_missed">%1$d olvidadas</string>
+    <string name="widget_today_sub_postponed">%1$d pospuestas</string>
+    <string name="widget_today_empty_no_meds_title">Sin medicamentos</string>
+    <string name="widget_today_empty_no_meds_body">Añade un medicamento para ver aquí el resumen de tu día.</string>
+    <string name="widget_today_empty_no_pending_today">No quedan tomas pendientes hoy.</string>
+    <string name="widget_error_title">No se pudo cargar</string>
+    <string name="widget_error_body">Toca para abrir Saludario y reintentar.</string>
 </resources>

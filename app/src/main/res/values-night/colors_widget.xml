@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_background">#FF1F1F1F</color>
+    <color name="widget_card_background">#FF2A2A2A</color>
+    <color name="widget_text_primary">#FFF5F5F5</color>
+    <color name="widget_text_secondary">#FFB0B0B0</color>
+    <color name="widget_accent">#FF64B5F6</color>
+    <color name="widget_status_pending">#FF64B5F6</color>
+    <color name="widget_status_missed">#FFEF9A9A</color>
+    <color name="widget_status_postponed">#FFFFB74D</color>
+    <color name="widget_progress_track">#FF424242</color>
+</resources>

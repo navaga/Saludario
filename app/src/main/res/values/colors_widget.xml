@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores específicos para los widgets de medicación. -->
+    <color name="widget_background">#FFFFFFFF</color>
+    <color name="widget_card_background">#FFF3F4F6</color>
+    <color name="widget_text_primary">#FF1F2937</color>
+    <color name="widget_text_secondary">#FF4B5563</color>
+    <color name="widget_accent">#FF1976D2</color>
+    <color name="widget_status_pending">#FF1976D2</color>
+    <color name="widget_status_missed">#FFD32F2F</color>
+    <color name="widget_status_postponed">#FFEF6C00</color>
+    <color name="widget_progress_track">#FFE5E7EB</color>
+</resources>

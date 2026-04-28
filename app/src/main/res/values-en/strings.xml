@@ -34,6 +34,13 @@
     <string name="settings_privacy_title">Privacy policy</string>
     <string name="settings_privacy_description">Review inside the app how data and notifications are handled.</string>
     <string name="settings_open_privacy_policy">View privacy policy</string>
+    <string name="settings_widgets_title">Home screen widgets</string>
+    <string name="settings_widgets_description">Add our widgets to see your next dose or today\'s summary without opening the app.</string>
+    <string name="settings_widgets_add_next_dose">Add "Next dose"</string>
+    <string name="settings_widgets_add_today">Add "Today"</string>
+    <string name="settings_widgets_pin_requested">Request sent. Confirm on your home screen.</string>
+    <string name="settings_widgets_pin_not_supported">Your launcher doesn\'t allow pinning widgets from the app. Long-press the home screen to add them manually.</string>
+    <string name="settings_widgets_pin_error">Couldn\'t start the add-widget flow.</string>
     <string name="settings_ads_title">Ads and privacy</string>
     <string name="settings_ads_description">The free version may show an occasional ad when opening a chart. Ads are never shown in Today, forms, notifications, or simple mode.</string>
     <string name="settings_ads_consent_unknown">Ad consent: pending review</string>
@@ -462,4 +469,27 @@ Scheduled time: %3$s</string>
     <string name="schedule_format">%1$s · %2$s</string>
     <string name="onboarding_page_indicator_cd">Go to page %1$d of %2$d</string>
     <string name="health_open_type_cd">Open %1$s records</string>
+
+    <!-- Widgets -->
+    <string name="widget_next_dose_description">Shows your next medication dose.</string>
+    <string name="widget_today_description">Daily summary with progress and upcoming doses.</string>
+    <string name="widget_status_label_next">Next dose</string>
+    <string name="widget_status_label_upcoming">Upcoming dose</string>
+    <string name="widget_status_label_missed">Missed dose</string>
+    <string name="widget_status_label_postponed">Postponed dose</string>
+    <string name="widget_when_tomorrow">Tomorrow</string>
+    <string name="widget_next_dose_empty_no_meds_title">No medications</string>
+    <string name="widget_next_dose_empty_no_meds_body">Add a medication in Saludario to see your next dose here.</string>
+    <string name="widget_next_dose_all_done_title">All done</string>
+    <string name="widget_next_dose_all_done_body">No doses left for today. Great job!</string>
+    <string name="widget_today_title">Today</string>
+    <string name="widget_today_counter_format">%1$d of %2$d taken</string>
+    <string name="widget_today_sub_pending">%1$d pending</string>
+    <string name="widget_today_sub_missed">%1$d missed</string>
+    <string name="widget_today_sub_postponed">%1$d postponed</string>
+    <string name="widget_today_empty_no_meds_title">No medications</string>
+    <string name="widget_today_empty_no_meds_body">Add a medication to see your daily summary here.</string>
+    <string name="widget_today_empty_no_pending_today">No doses left for today.</string>
+    <string name="widget_error_title">Couldn’t load</string>
+    <string name="widget_error_body">Tap to open Saludario and try again.</string>
 </resources>

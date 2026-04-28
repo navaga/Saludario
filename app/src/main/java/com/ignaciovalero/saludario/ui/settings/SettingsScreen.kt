@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,7 +51,9 @@ import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.data.ads.AdConsentStatus
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
+import com.ignaciovalero.saludario.ui.widget.WidgetPinning
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +68,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
     var languageExpanded by remember { mutableStateOf(false) }
     val isDarkModeEnabled = uiState.darkModeEnabled ?: isSystemInDarkTheme()
@@ -272,6 +276,25 @@ fun SettingsScreen(
             }
         }
 
+        WidgetsCard(
+            onAddNextDose = {
+                handleWidgetPin(
+                    context = context,
+                    snackbarHostState = snackbarHostState,
+                    coroutineScope = coroutineScope,
+                    widget = WidgetPinning.Widget.NEXT_DOSE
+                )
+            },
+            onAddToday = {
+                handleWidgetPin(
+                    context = context,
+                    snackbarHostState = snackbarHostState,
+                    coroutineScope = coroutineScope,
+                    widget = WidgetPinning.Widget.TODAY_SUMMARY
+                )
+            }
+        )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -441,5 +464,68 @@ private fun ReliabilityEntryCard(onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+private fun WidgetsCard(
+    onAddNextDose: () -> Unit,
+    onAddToday: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_widgets_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_widgets_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onAddNextDose,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.settings_widgets_add_next_dose))
+            }
+            OutlinedButton(
+                onClick = onAddToday,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.settings_widgets_add_today))
+            }
+        }
+    }
+}
+
+private fun handleWidgetPin(
+    context: android.content.Context,
+    snackbarHostState: SnackbarHostState,
+    coroutineScope: kotlinx.coroutines.CoroutineScope,
+    widget: WidgetPinning.Widget
+) {
+    val result = WidgetPinning.requestPin(context, widget)
+    val messageRes = when (result) {
+        WidgetPinning.Result.REQUESTED -> R.string.settings_widgets_pin_requested
+        WidgetPinning.Result.NOT_SUPPORTED -> R.string.settings_widgets_pin_not_supported
+        WidgetPinning.Result.ERROR -> R.string.settings_widgets_pin_error
+    }
+    coroutineScope.launch {
+        snackbarHostState.showSnackbar(message = context.getString(messageRes))
     }
 }

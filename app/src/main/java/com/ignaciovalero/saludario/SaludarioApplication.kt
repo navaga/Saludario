@@ -8,6 +8,7 @@ import com.ignaciovalero.saludario.core.localization.AppLanguageManager
 import com.ignaciovalero.saludario.data.di.AppContainer
 import com.ignaciovalero.saludario.data.di.DefaultAppContainer
 import com.ignaciovalero.saludario.data.notification.NotificationHelper
+import com.ignaciovalero.saludario.ui.widget.MedicationWidgetUpdater
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -34,6 +35,10 @@ class SaludarioApplication : Application() {
         container.workScheduler.scheduleDailyDoseGeneration()
         container.workScheduler.scheduleMissedDoseCheck()
         container.workScheduler.runImmediateDoseGeneration()
+        // Refresca los widgets de inicio en cuanto el proceso arranca, para
+        // que reflejen el estado actual aunque el sistema no haya disparado
+        // todavía el `updatePeriodMillis` programado.
+        MedicationWidgetUpdater.refreshAll(this)
     }
 
     private fun installCrashLogging() {
