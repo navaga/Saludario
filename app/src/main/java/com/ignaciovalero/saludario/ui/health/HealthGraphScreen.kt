@@ -67,7 +67,8 @@ fun HealthGraphScreen(
             selectedDate = selectedDate,
             onSelectDate = { selectedDate = it },
             onClearDate = { selectedDate = null },
-            modifier = Modifier.padding(horizontal = AppSpacing.lg)
+            modifier = Modifier.padding(horizontal = AppSpacing.lg),
+            availableRecords = uiState.records
         )
 
         when {

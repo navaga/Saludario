@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -31,6 +32,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,6 +73,7 @@ fun SimpleModeScreen(
     onPostpone: (medicationId: Long, time: String) -> Unit,
     onExitSimpleMode: () -> Unit,
     contentPadding: PaddingValues,
+    onHighlightConsumed: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
@@ -124,7 +128,57 @@ fun SimpleModeScreen(
                 )
             }
         } else {
+            // Localiza el item destacado para hacer scroll y resaltarlo cuando
+            // la app se abre desde una notificación. La key visual coincide
+            // con la key Compose `${medicationId}_${time}` para que la tarjeta
+            // pueda compararla y aplicar el borde.
+            val highlightedKey = remember(uiState.highlightedDose, pending, missed, taken) {
+                val target = uiState.highlightedDose ?: return@remember null
+                (pending + missed + taken).firstOrNull {
+                    it.medicationId == target.medicationId && (
+                        it.scheduledAt.toLocalTime() == target.originalScheduledTime ||
+                            it.effectiveTime.toLocalTime() == target.originalScheduledTime
+                        )
+                }?.let { "${it.medicationId}_${it.time}" }
+            }
+
+            val highlightedIndex = remember(highlightedKey, pending, missed, taken) {
+                if (highlightedKey == null) return@remember -1
+                var idx = 0
+                if (pending.isNotEmpty()) {
+                    idx++ // header "pendientes"
+                    for (item in pending) {
+                        if ("${item.medicationId}_${item.time}" == highlightedKey) return@remember idx
+                        idx++
+                    }
+                }
+                if (missed.isNotEmpty()) {
+                    idx++ // header "olvidadas"
+                    for (item in missed) {
+                        if ("${item.medicationId}_${item.time}" == highlightedKey) return@remember idx
+                        idx++
+                    }
+                }
+                idx++ // resumen tomadas
+                for (item in taken) {
+                    if ("${item.medicationId}_${item.time}" == highlightedKey) return@remember idx
+                    idx++
+                }
+                -1
+            }
+
+            val listState = rememberLazyListState()
+            LaunchedEffect(highlightedIndex, uiState.highlightedDose) {
+                if (highlightedIndex >= 0) {
+                    listState.animateScrollToItem(highlightedIndex)
+                    onHighlightConsumed()
+                } else if (uiState.highlightedDose != null) {
+                    onHighlightConsumed()
+                }
+            }
+
             LazyColumn(
+                state = listState,
                 contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.lg),
                 modifier = Modifier.fillMaxSize()
@@ -142,6 +196,7 @@ fun SimpleModeScreen(
                     items(pending, key = { "p_${it.medicationId}_${it.time}" }) { item ->
                         SimpleMedicationCard(
                             item = item,
+                            highlighted = highlightedKey == "${item.medicationId}_${item.time}",
                             onConfirm = { onConfirmTaken(item.medicationId, item.time) },
                             onPostpone = { onPostpone(item.medicationId, item.time) }
                         )
@@ -161,6 +216,7 @@ fun SimpleModeScreen(
                     items(missed, key = { "m_${it.medicationId}_${it.time}" }) { item ->
                         SimpleMedicationCard(
                             item = item,
+                            highlighted = highlightedKey == "${item.medicationId}_${item.time}",
                             onConfirm = { onConfirmTaken(item.medicationId, item.time) },
                             onPostpone = { onPostpone(item.medicationId, item.time) }
                         )
@@ -192,6 +248,7 @@ private fun SimpleMedicationCard(
     item: ScheduledDose,
     onConfirm: () -> Unit,
     onPostpone: () -> Unit,
+    highlighted: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -229,7 +286,7 @@ private fun SimpleMedicationCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (highlighted) 10.dp else 6.dp),
         colors = CardDefaults.cardColors(
             containerColor = when (item.status) {
                 ScheduledDoseStatus.TAKEN -> takenContainer
@@ -238,10 +295,17 @@ private fun SimpleMedicationCard(
                 ScheduledDoseStatus.POSTPONED -> pendingContainer
             }
         ),
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.5.dp,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = if (isDarkTheme) 0.75f else 0.45f)
-        )
+        border = if (highlighted) {
+            androidx.compose.foundation.BorderStroke(
+                width = 3.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            androidx.compose.foundation.BorderStroke(
+                width = 1.5.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = if (isDarkTheme) 0.75f else 0.45f)
+            )
+        }
     ) {
         Column(
             modifier = Modifier

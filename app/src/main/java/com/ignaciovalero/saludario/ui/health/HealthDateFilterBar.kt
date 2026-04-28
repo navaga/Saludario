@@ -6,15 +6,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,22 +20,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import com.ignaciovalero.saludario.R
-import java.time.Instant
+import com.ignaciovalero.saludario.data.local.entity.HealthRecord
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HealthDateFilterBar(
     selectedDate: LocalDate?,
     onSelectDate: (LocalDate) -> Unit,
     onClearDate: () -> Unit,
+    availableRecords: List<HealthRecord>,
     modifier: Modifier = Modifier
 ) {
     var showDatePicker by remember { mutableStateOf(false) }
     val locale = LocalConfiguration.current.locales[0]
+
+    // Conteo de mediciones por fecha para pintar indicadores en el calendario.
+    // Recalcula sólo cuando cambia el listado, así no penalizamos en cada
+    // recomposición del filtro.
+    val countsByDate = remember(availableRecords) {
+        availableRecords
+            .groupingBy { it.recordedAt.toLocalDate() }
+            .eachCount()
+    }
 
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -79,42 +81,18 @@ fun HealthDateFilterBar(
     }
 
     if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDate?.toEpochMillis()
-        )
-
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val selectedMillis = datePickerState.selectedDateMillis
-                        if (selectedMillis != null) {
-                            onSelectDate(selectedMillis.toLocalDate())
-                        }
-                        showDatePicker = false
-                    }
-                ) {
-                    Text(text = stringResource(R.string.time_picker_confirm))
-                }
+        HealthDateFilterCalendarDialog(
+            selectedDate = selectedDate,
+            countsByDate = countsByDate,
+            onConfirm = {
+                onSelectDate(it)
+                showDatePicker = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(text = stringResource(R.string.time_picker_cancel))
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+            onClearFilter = {
+                onClearDate()
+                showDatePicker = false
+            },
+            onDismiss = { showDatePicker = false }
+        )
     }
-}
-
-private fun LocalDate.toEpochMillis(): Long {
-    return atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-}
-
-private fun Long.toLocalDate(): LocalDate {
-    return Instant.ofEpochMilli(this)
-        .atZone(ZoneId.systemDefault())
-        .toLocalDate()
 }

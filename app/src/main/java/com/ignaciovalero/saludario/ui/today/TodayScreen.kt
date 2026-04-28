@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -35,8 +36,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,8 +47,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,14 +88,10 @@ import com.ignaciovalero.saludario.ui.theme.MedicationTakenAccentLight
 import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainerDark
 import com.ignaciovalero.saludario.ui.theme.MedicationTakenContainerLight
 import com.ignaciovalero.saludario.ui.theme.SaludarioTheme
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 import java.util.Locale
-
-private const val MILLIS_IN_DAY = 24L * 60L * 60L * 1000L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,6 +103,9 @@ fun DayScreen(
     onPreviousDay: () -> Unit,
     onNextDay: () -> Unit,
     onDateSelected: (LocalDate) -> Unit,
+    onPreviousCalendarMonth: () -> Unit,
+    onNextCalendarMonth: () -> Unit,
+    onSetVisibleCalendarMonth: (java.time.YearMonth) -> Unit,
     onEnterSimpleMode: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenReliability: () -> Unit,
@@ -115,6 +113,7 @@ fun DayScreen(
     showSimpleModeHint: Boolean,
     onDismissSimpleModeHint: () -> Unit,
     contentPadding: PaddingValues,
+    onHighlightConsumed: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -427,21 +426,113 @@ fun DayScreen(
                 }
             }
         } else {
+            // Listas precomputadas: las usamos tanto para construir el
+            // LazyColumn como para localizar el índice de la dosis a destacar
+            // si el usuario abrió la app desde una notificación.
+            val attentionItems = remember(uiState.scheduledItems, isToday, nowLocalDateTime) {
+                if (isToday) uiState.scheduledItems.filter {
+                    it.isMissed || it.isPostponed ||
+                        (it.isPending && it.effectiveTime <= nowLocalDateTime)
+                }.sortedBy { it.effectiveTime } else emptyList()
+            }
+            val upcomingItems = remember(uiState.scheduledItems, isToday, nowLocalDateTime) {
+                if (isToday) uiState.scheduledItems.filter {
+                    it.isPending && it.effectiveTime > nowLocalDateTime
+                }.sortedBy { it.effectiveTime } else emptyList()
+            }
+            val takenItems = remember(uiState.scheduledItems, isToday) {
+                if (isToday) uiState.scheduledItems.filter { it.isTaken }
+                    .sortedBy { it.effectiveTime } else emptyList()
+            }
+            val groupedByHour = remember(uiState.scheduledItems, isToday) {
+                if (!isToday) uiState.scheduledItems.groupBy { it.time.substringBefore(":") }
+                else emptyMap()
+            }
+
+            // Determina el índice del item destacado dentro del LazyColumn,
+            // recorriendo la misma estructura que se construye más abajo.
+            val highlightedIndex = remember(
+                uiState.highlightedDose,
+                attentionItems,
+                upcomingItems,
+                takenItems,
+                groupedByHour
+            ) {
+                val target = uiState.highlightedDose ?: return@remember -1
+                fun matches(item: com.ignaciovalero.saludario.domain.scheduling.ScheduledDose): Boolean {
+                    if (item.medicationId != target.medicationId) return false
+                    return item.scheduledAt.toLocalTime() == target.originalScheduledTime ||
+                        item.effectiveTime.toLocalTime() == target.originalScheduledTime
+                }
+                var idx = 0
+                if (isToday) {
+                    if (attentionItems.isNotEmpty()) {
+                        idx++ // section header
+                        for (item in attentionItems) {
+                            if (matches(item)) return@remember idx
+                            idx++
+                        }
+                    }
+                    if (upcomingItems.isNotEmpty()) {
+                        idx++ // section header
+                        for (item in upcomingItems) {
+                            if (matches(item)) return@remember idx
+                            idx++
+                        }
+                    }
+                    if (takenItems.isNotEmpty()) {
+                        idx++ // section header
+                        for (item in takenItems) {
+                            if (matches(item)) return@remember idx
+                            idx++
+                        }
+                    }
+                } else {
+                    for ((_, items) in groupedByHour) {
+                        idx++ // hour header
+                        for (item in items) {
+                            if (matches(item)) return@remember idx
+                            idx++
+                        }
+                        idx++ // spacer
+                    }
+                }
+                -1
+            }
+
+            val highlightedKey = remember(uiState.highlightedDose, attentionItems, upcomingItems, takenItems, groupedByHour) {
+                val target = uiState.highlightedDose ?: return@remember null
+                val all = attentionItems + upcomingItems + takenItems +
+                    groupedByHour.values.flatten()
+                all.firstOrNull {
+                    it.medicationId == target.medicationId && (
+                        it.scheduledAt.toLocalTime() == target.originalScheduledTime ||
+                            it.effectiveTime.toLocalTime() == target.originalScheduledTime
+                        )
+                }?.let { "${it.medicationId}_${it.time}" }
+            }
+
+            val listState = rememberLazyListState()
+            LaunchedEffect(highlightedIndex) {
+                if (highlightedIndex >= 0) {
+                    // Pequeño offset negativo para que la tarjeta no quede
+                    // pegada al borde superior cuando es viable.
+                    listState.animateScrollToItem(highlightedIndex)
+                    onHighlightConsumed()
+                } else if (uiState.highlightedDose != null) {
+                    // El target llegó pero no hay coincidencia (medicamento
+                    // borrado, otro día, etc.). Lo descartamos para no dejar
+                    // el estado colgado.
+                    onHighlightConsumed()
+                }
+            }
+
             LazyColumn(
+                state = listState,
                 contentPadding = PaddingValues(horizontal = AppSpacing.lg, vertical = AppSpacing.md),
                 verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
             ) {
                 if (isToday) {
-                    val attentionItems = uiState.scheduledItems.filter {
-                        it.isMissed || it.isPostponed ||
-                            (it.isPending && it.effectiveTime <= nowLocalDateTime)
-                    }.sortedBy { it.effectiveTime }
-                    val upcomingItems = uiState.scheduledItems.filter {
-                        it.isPending && it.effectiveTime > nowLocalDateTime
-                    }.sortedBy { it.effectiveTime }
-                    val takenItems = uiState.scheduledItems.filter { it.isTaken }
-                        .sortedBy { it.effectiveTime }
-
                     if (attentionItems.isNotEmpty()) {
                         item(key = "section_attention") {
                             SectionHeader(
@@ -453,6 +544,7 @@ fun DayScreen(
                             ScheduledMedicationCard(
                                 item = item,
                                 canModifyIntake = uiState.canModifyIntake,
+                                highlighted = highlightedKey == "${item.medicationId}_${item.time}",
                                 onToggle = { onToggleTaken(item.medicationId, item.time) },
                                 onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
                             )
@@ -470,6 +562,7 @@ fun DayScreen(
                             ScheduledMedicationCard(
                                 item = item,
                                 canModifyIntake = uiState.canModifyIntake,
+                                highlighted = highlightedKey == "${item.medicationId}_${item.time}",
                                 onToggle = { onToggleTaken(item.medicationId, item.time) },
                                 onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
                             )
@@ -487,13 +580,13 @@ fun DayScreen(
                             ScheduledMedicationCard(
                                 item = item,
                                 canModifyIntake = uiState.canModifyIntake,
+                                highlighted = highlightedKey == "${item.medicationId}_${item.time}",
                                 onToggle = { onToggleTaken(item.medicationId, item.time) },
                                 onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
                             )
                         }
                     }
                 } else {
-                    val groupedByHour = uiState.scheduledItems.groupBy { it.time.substringBefore(":") }
                     groupedByHour.forEach { (hour, items) ->
                         item(key = "header_$hour") {
                             TimeGroupHeader(hour = hour)
@@ -502,6 +595,7 @@ fun DayScreen(
                             ScheduledMedicationCard(
                                 item = item,
                                 canModifyIntake = uiState.canModifyIntake,
+                                highlighted = highlightedKey == "${item.medicationId}_${item.time}",
                                 onToggle = { onToggleTaken(item.medicationId, item.time) },
                                 onPostpone = { minutes -> onPostpone(item.medicationId, item.time, minutes) }
                             )
@@ -515,38 +609,19 @@ fun DayScreen(
         }
 
         if (showDatePicker) {
-            val selectedMillis = selectedDate
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant()
-                .toEpochMilli()
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDateMillis = selectedMillis
-            )
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        val pickedMillis = datePickerState.selectedDateMillis
-                        if (pickedMillis != null) {
-                            val normalizedMillis = pickedMillis + MILLIS_IN_DAY / 2
-                            val pickedDate = Instant.ofEpochMilli(normalizedMillis)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                            onDateSelected(pickedDate)
-                        }
-                        showDatePicker = false
-                    }) {
-                        Text(text = stringResource(R.string.time_picker_confirm))
-                    }
+            MedicationCalendarPickerDialog(
+                selectedDate = selectedDate,
+                visibleMonth = uiState.visibleCalendarMonth,
+                statuses = uiState.calendarDayStatuses,
+                onPreviousMonth = onPreviousCalendarMonth,
+                onNextMonth = onNextCalendarMonth,
+                onSetVisibleMonth = onSetVisibleCalendarMonth,
+                onConfirm = { picked ->
+                    onDateSelected(picked)
+                    showDatePicker = false
                 },
-                dismissButton = {
-                    TextButton(onClick = { showDatePicker = false }) {
-                        Text(text = stringResource(R.string.time_picker_cancel))
-                    }
-                }
-            ) {
-                DatePicker(state = datePickerState)
-            }
+                onDismiss = { showDatePicker = false }
+            )
         }
     }
 }
@@ -657,6 +732,7 @@ private fun ScheduledMedicationCard(
     canModifyIntake: Boolean,
     onToggle: () -> Unit,
     onPostpone: (minutes: Long) -> Unit,
+    highlighted: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -741,6 +817,12 @@ private fun ScheduledMedicationCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
+        border = if (highlighted) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else null,
+        elevation = if (highlighted) {
+            CardDefaults.cardElevation(defaultElevation = 6.dp)
+        } else CardDefaults.cardElevation(),
         colors = CardDefaults.cardColors(containerColor = containerColor)
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
@@ -1031,6 +1113,9 @@ private fun TodayScreenPreview() {
             onPreviousDay = {},
             onNextDay = {},
             onDateSelected = {},
+            onPreviousCalendarMonth = {},
+            onNextCalendarMonth = {},
+            onSetVisibleCalendarMonth = {},
             onEnterSimpleMode = {},
             onOpenSettings = {},
             onOpenReliability = {},

@@ -210,6 +210,25 @@
     <string name="today_section_needs_attention">REQUIEREN ATENCIÓN</string>
     <string name="today_section_upcoming">PRÓXIMAS</string>
     <string name="today_section_taken">TOMADAS</string>
+
+    <!-- Calendar picker -->
+    <string name="calendar_previous_month_cd">Mes anterior</string>
+    <string name="calendar_next_month_cd">Mes siguiente</string>
+    <string name="calendar_today">Hoy</string>
+    <string name="calendar_yesterday">Ayer</string>
+    <string name="calendar_tomorrow">Mañana</string>
+    <string name="calendar_selected_cd">seleccionado</string>
+    <string name="calendar_summary_no_doses">Sin tomas programadas</string>
+    <string name="calendar_summary_all_taken">%1$d tomas · todas completadas</string>
+    <string name="calendar_summary_basic">%1$d tomas · %2$d tomadas · %3$d pendientes</string>
+    <string name="calendar_summary_with_missed">%1$d tomas · %2$d tomadas · %3$d olvidadas</string>
+    <string name="calendar_legend_completed">Completado</string>
+    <string name="calendar_legend_pending">Pendiente</string>
+    <string name="calendar_legend_missed">Olvidado</string>
+    <string name="health_calendar_summary_empty">Sin mediciones este día</string>
+    <string name="health_calendar_summary_count">%1$d mediciones registradas</string>
+    <string name="health_calendar_legend_has_records">Con mediciones</string>
+    <string name="health_calendar_clear_filter">Quitar filtro</string>
     <string name="today_taken_status_cd">La toma de %1$s de las %2$s ya está marcada como tomada.</string>
     <string name="today_mark_taken_for_cd">Marcar la toma de %1$s de las %2$s como tomada.</string>
 

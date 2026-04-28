@@ -206,6 +206,25 @@
     <string name="today_section_needs_attention">NEEDS ATTENTION</string>
     <string name="today_section_upcoming">UPCOMING</string>
     <string name="today_section_taken">TAKEN</string>
+
+    <!-- Calendar picker -->
+    <string name="calendar_previous_month_cd">Previous month</string>
+    <string name="calendar_next_month_cd">Next month</string>
+    <string name="calendar_today">Today</string>
+    <string name="calendar_yesterday">Yesterday</string>
+    <string name="calendar_tomorrow">Tomorrow</string>
+    <string name="calendar_selected_cd">selected</string>
+    <string name="calendar_summary_no_doses">No scheduled doses</string>
+    <string name="calendar_summary_all_taken">%1$d doses · all completed</string>
+    <string name="calendar_summary_basic">%1$d doses · %2$d taken · %3$d pending</string>
+    <string name="calendar_summary_with_missed">%1$d doses · %2$d taken · %3$d missed</string>
+    <string name="calendar_legend_completed">Completed</string>
+    <string name="calendar_legend_pending">Pending</string>
+    <string name="calendar_legend_missed">Missed</string>
+    <string name="health_calendar_summary_empty">No measurements this day</string>
+    <string name="health_calendar_summary_count">%1$d measurements recorded</string>
+    <string name="health_calendar_legend_has_records">Has measurements</string>
+    <string name="health_calendar_clear_filter">Clear filter</string>
     <string name="today_taken_status_cd">The %1$s dose at %2$s is already marked as taken.</string>
     <string name="today_mark_taken_for_cd">Mark the %1$s dose at %2$s as taken.</string>
 

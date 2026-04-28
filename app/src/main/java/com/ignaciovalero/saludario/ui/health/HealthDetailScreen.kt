@@ -289,7 +289,8 @@ fun HealthDetailScreen(
                 HealthDateFilterBar(
                     selectedDate = selectedHistoryDate,
                     onSelectDate = { selectedHistoryDate = it },
-                    onClearDate = { selectedHistoryDate = null }
+                    onClearDate = { selectedHistoryDate = null },
+                    availableRecords = uiState.records
                 )
             }
 

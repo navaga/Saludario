@@ -35,7 +35,7 @@ val configuredGraphAdCooldownMinutes = providers.gradleProperty("GRAPH_AD_COOLDO
     .orNull
     ?.toIntOrNull()
     ?.coerceAtLeast(1)
-    ?: 180
+    ?: 5
 
 val testAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
 val testGraphInterstitialAdId = "ca-app-pub-3940256099942544/1033173712"

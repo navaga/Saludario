@@ -24,8 +24,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
 
 class TodayViewModel(
     private val medicationRepository: MedicationRepository,
@@ -37,6 +39,20 @@ class TodayViewModel(
     private val _currentDate = MutableStateFlow(nowDate())
     val currentDate: StateFlow<LocalDate> = _currentDate.asStateFlow()
 
+    /**
+     * Dosis solicitada por una notificación a la que la UI debe hacer scroll
+     * y resaltar. Permanece hasta que la pantalla la consume vía
+     * [clearHighlightedDose].
+     */
+    private val _highlightedDose = MutableStateFlow<HighlightedDose?>(null)
+
+    /**
+     * Mes que el calendario está mostrando. Cambiar de mes en el calendario
+     * no debe modificar la fecha activa, por eso está separado de
+     * [_currentDate].
+     */
+    private val _visibleCalendarMonth = MutableStateFlow(YearMonth.from(nowDate()))
+
     // Eventos one-shot para mostrar Snackbars con "Deshacer".
     private val _snackbarEvents = Channel<TodaySnackbarEvent>(Channel.BUFFERED)
     val snackbarEvents = _snackbarEvents.receiveAsFlow()
@@ -47,23 +63,31 @@ class TodayViewModel(
 
     val uiState: StateFlow<TodayUiState> =
         combine(
-            _currentDate,
-            medicationRepository.observeAll(),
-            medicationLogRepository.observeAll()
-        ) { selectedDate, medications, logs ->
+            combine(
+                _currentDate,
+                medicationRepository.observeAll(),
+                medicationLogRepository.observeAll()
+            ) { date, meds, logs -> Triple(date, meds, logs) },
+            _highlightedDose,
+            _visibleCalendarMonth
+        ) { (selectedDate, medications, logs), highlighted, visibleMonth ->
             val today = nowDate()
             val now = nowDateTime()
-            val items = ScheduledDoseGenerator(
+            val generator = ScheduledDoseGenerator(
                 medications = medications,
                 logs = logs,
                 now = now
-            ).generateDosesForDate(selectedDate)
+            )
+            val items = generator.generateDosesForDate(selectedDate)
 
             val streak = computeStreakDays(
-                medications = medications,
-                logs = logs,
-                today = today,
-                now = now
+                generator = generator,
+                today = today
+            )
+
+            val calendarStatuses = computeMonthCalendarStatuses(
+                generator = generator,
+                month = visibleMonth
             )
 
             TodayUiState(
@@ -71,25 +95,50 @@ class TodayViewModel(
                 scheduledItems = items,
                 canModifyIntake = selectedDate == today,
                 streakDays = streak,
-                hasAnyMedication = medications.isNotEmpty()
+                hasAnyMedication = medications.isNotEmpty(),
+                highlightedDose = highlighted,
+                visibleCalendarMonth = visibleMonth,
+                calendarDayStatuses = calendarStatuses
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 
+    /**
+     * Calcula el estado de medicación para los 42 días que normalmente
+     * componen un grid mensual (6 semanas empezando en lunes), de forma que
+     * el calendario tenga datos también para los días "de relleno" del mes
+     * anterior y siguiente.
+     */
+    private fun computeMonthCalendarStatuses(
+        generator: ScheduledDoseGenerator,
+        month: YearMonth
+    ): Map<LocalDate, CalendarDayMedicationStatus> {
+        val firstOfMonth = month.atDay(1)
+        val daysFromMonday = (firstOfMonth.dayOfWeek.value - DayOfWeek.MONDAY.value + 7) % 7
+        val gridStart = firstOfMonth.minusDays(daysFromMonday.toLong())
+        val result = LinkedHashMap<LocalDate, CalendarDayMedicationStatus>(CALENDAR_GRID_DAYS)
+        for (offset in 0 until CALENDAR_GRID_DAYS) {
+            val day = gridStart.plusDays(offset.toLong())
+            val doses = generator.generateDosesForDate(day)
+            result[day] = CalendarDayMedicationStatus.fromDoses(day, doses)
+        }
+        return result
+    }
+
     private fun computeStreakDays(
-        medications: List<com.ignaciovalero.saludario.data.local.entity.MedicationEntity>,
-        logs: List<MedicationLogEntity>,
-        today: LocalDate,
-        now: LocalDateTime
+        generator: ScheduledDoseGenerator,
+        today: LocalDate
     ): Int {
         // Cuenta días consecutivos hacia atrás con 100% de adherencia.
         // - Hoy cuenta solo si todas las dosis programadas están tomadas.
         // - Días sin dosis programadas no rompen ni suman a la racha.
-        // Limitado a 60 días para acotar cálculo.
+        // - Limitado a STREAK_LOOKBACK_DAYS para acotar cálculo.
+        // Reutilizamos el mismo generador (es inmutable y stateless por
+        // día) para evitar instanciarlo en cada iteración.
         var streak = 0
         var date = today
-        repeat(60) {
-            val items = ScheduledDoseGenerator(medications, logs, now).generateDosesForDate(date)
+        repeat(STREAK_LOOKBACK_DAYS) {
+            val items = generator.generateDosesForDate(date)
             when {
                 items.isEmpty() -> { /* día neutro: no suma ni rompe */ }
                 items.all { it.isTaken } -> streak += 1
@@ -101,19 +150,66 @@ class TodayViewModel(
     }
 
     fun previousDay() {
-        _currentDate.value = _currentDate.value.minusDays(1)
+        val newDate = _currentDate.value.minusDays(1)
+        _currentDate.value = newDate
+        _visibleCalendarMonth.value = YearMonth.from(newDate)
     }
 
     fun nextDay() {
-        _currentDate.value = _currentDate.value.plusDays(1)
+        val newDate = _currentDate.value.plusDays(1)
+        _currentDate.value = newDate
+        _visibleCalendarMonth.value = YearMonth.from(newDate)
     }
 
     fun setDate(date: LocalDate) {
         _currentDate.value = date
+        _visibleCalendarMonth.value = YearMonth.from(date)
     }
 
     fun goToToday() {
-        _currentDate.value = nowDate()
+        val today = nowDate()
+        _currentDate.value = today
+        _visibleCalendarMonth.value = YearMonth.from(today)
+    }
+
+    /**
+     * Cambia el mes mostrado por el calendario sin alterar la fecha
+     * seleccionada. Así el usuario puede explorar otros meses antes de
+     * decidir.
+     */
+    fun setVisibleCalendarMonth(month: YearMonth) {
+        _visibleCalendarMonth.value = month
+    }
+
+    fun previousCalendarMonth() {
+        _visibleCalendarMonth.value = _visibleCalendarMonth.value.minusMonths(1)
+    }
+
+    fun nextCalendarMonth() {
+        _visibleCalendarMonth.value = _visibleCalendarMonth.value.plusMonths(1)
+    }
+
+    /**
+     * Abre la pantalla en la fecha de la dosis indicada y deja registrado el
+     * objetivo a destacar. La UI hará scroll automáticamente cuando la dosis
+     * aparezca en `scheduledItems`. Si la dosis pertenece a otro día, se
+     * cambia la fecha (el día queda en modo solo-lectura si no es hoy).
+     */
+    fun openDoseFromNotification(medicationId: Long, scheduledDateTime: LocalDateTime) {
+        _currentDate.value = scheduledDateTime.toLocalDate()
+        _visibleCalendarMonth.value = YearMonth.from(scheduledDateTime.toLocalDate())
+        _highlightedDose.value = HighlightedDose(
+            medicationId = medicationId,
+            originalScheduledTime = scheduledDateTime.toLocalTime()
+        )
+    }
+
+    /**
+     * Llamado por la UI tras consumir el highlight (típicamente después del
+     * primer scroll), para evitar que se repita en futuras recomposiciones.
+     */
+    fun clearHighlightedDose() {
+        _highlightedDose.value = null
     }
 
     fun toggleTaken(medicationId: Long, time: String) {
@@ -234,6 +330,9 @@ class TodayViewModel(
     }
 
     companion object {
+        private const val CALENDAR_GRID_DAYS = 42
+        private const val STREAK_LOOKBACK_DAYS = 60
+
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as SaludarioApplication

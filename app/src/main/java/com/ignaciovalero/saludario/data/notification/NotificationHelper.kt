@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
@@ -14,6 +15,18 @@ import com.ignaciovalero.saludario.core.localization.localizedScheduledTime
 object NotificationHelper {
 
     const val CHANNEL_ID = "medication_reminders"
+
+    /** Acción usada en el Intent que abre la app al tocar el cuerpo de la notificación. */
+    const val ACTION_OPEN_DOSE = "com.ignaciovalero.saludario.ACTION_OPEN_DOSE"
+
+    /** Identificador del medicamento de la dosis que originó la notificación. */
+    const val EXTRA_OPEN_MEDICATION_ID = "extra_open_medication_id"
+
+    /**
+     * Hora programada (ISO `LocalDateTime`, igual al valor que usa
+     * `MedicationReminderWorker.KEY_SCHEDULED_TIME`) de la dosis a abrir.
+     */
+    const val EXTRA_OPEN_SCHEDULED_TIME = "extra_open_scheduled_time"
 
     fun createNotificationChannel(context: Context) {
         val channel = NotificationChannel(
@@ -76,16 +89,11 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val contentIntent = context.packageManager
-            .getLaunchIntentForPackage(context.packageName)
-            ?.let { intent ->
-                PendingIntent.getActivity(
-                    context,
-                    0,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-            }
+        val contentIntent = buildOpenDosePendingIntent(
+            context = context,
+            medicationId = medicationId,
+            scheduledTime = scheduledTime
+        )
         val publicVersion = buildPrivatePreviewNotification(
             context = context,
             contentIntent = contentIntent,
@@ -170,5 +178,35 @@ object NotificationHelper {
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
+    }
+
+    /**
+     * Construye el `PendingIntent` que abre `MainActivity` indicándole qué
+     * dosis debe destacar al pulsar el cuerpo de la notificación. Reutiliza el
+     * mismo `notificationId(...)` como `requestCode` para que extras nuevos
+     * (`FLAG_UPDATE_CURRENT`) reemplacen a los antiguos sin colisionar entre
+     * notificaciones distintas.
+     */
+    private fun buildOpenDosePendingIntent(
+        context: Context,
+        medicationId: Long,
+        scheduledTime: String
+    ): PendingIntent {
+        val intent = Intent().apply {
+            // Componente explícito por nombre para no depender de import directo
+            // de MainActivity (evita ciclos entre módulos/paquetes).
+            component = ComponentName(context.packageName, "com.ignaciovalero.saludario.MainActivity")
+            action = ACTION_OPEN_DOSE
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(EXTRA_OPEN_MEDICATION_ID, medicationId)
+            putExtra(EXTRA_OPEN_SCHEDULED_TIME, scheduledTime)
+        }
+        val requestCode = notificationId(medicationId, scheduledTime)
+        return PendingIntent.getActivity(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 }

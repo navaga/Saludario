@@ -48,6 +48,7 @@ import com.ignaciovalero.saludario.ui.medications.MedicationListScreen
 import com.ignaciovalero.saludario.ui.medications.MedicationListViewModel
 import com.ignaciovalero.saludario.ui.navigation.Screen
 import com.ignaciovalero.saludario.ui.navigation.bottomBarScreens
+import com.ignaciovalero.saludario.ui.notification.MedicationNotificationTarget
 import com.ignaciovalero.saludario.ui.onboarding.OnboardingScreen
 import com.ignaciovalero.saludario.ui.onboarding.OnboardingViewModel
 import com.ignaciovalero.saludario.ui.permissions.NotificationPermissionEffect
@@ -62,12 +63,20 @@ import com.ignaciovalero.saludario.ui.theme.AppSpacing
 import com.ignaciovalero.saludario.ui.tutorial.TutorialOverlayHost
 import com.ignaciovalero.saludario.ui.tutorial.TutorialScreen
 import com.ignaciovalero.saludario.ui.tutorial.TutorialViewModel
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 @Composable
-fun SaludarioApp() {
+fun SaludarioApp(
+    notificationTargets: SharedFlow<MedicationNotificationTarget> =
+        remember { MutableSharedFlow<MedicationNotificationTarget>().asSharedFlow() }
+) {
     val onboardingViewModel: OnboardingViewModel = viewModel(factory = OnboardingViewModel.Factory)
     val onboardingCompleted by onboardingViewModel.onboardingCompleted.collectAsState()
     val onboardingState by onboardingViewModel.uiState.collectAsState()
@@ -102,22 +111,39 @@ fun SaludarioApp() {
 
     if (isSimpleMode) {
         SimpleModeContent(
-            onExitSimpleMode = { simpleModeViewModel.setSimpleMode(false) }
+            onExitSimpleMode = { simpleModeViewModel.setSimpleMode(false) },
+            notificationTargets = notificationTargets
         )
     } else {
         NormalModeContent(
-            onEnterSimpleMode = { simpleModeViewModel.setSimpleMode(true) }
+            onEnterSimpleMode = { simpleModeViewModel.setSimpleMode(true) },
+            notificationTargets = notificationTargets
         )
     }
 }
 
 @Composable
-private fun SimpleModeContent(onExitSimpleMode: () -> Unit) {
+private fun SimpleModeContent(
+    onExitSimpleMode: () -> Unit,
+    notificationTargets: SharedFlow<MedicationNotificationTarget>
+) {
     val todayViewModel: TodayViewModel = viewModel(factory = TodayViewModel.Factory)
     val todayState by todayViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         todayViewModel.goToToday()
+    }
+
+    // Aunque el usuario esté en modo simple, las notificaciones deben llevarle
+    // a la toma concreta dentro de esta misma vista, sin sacarle de su modo
+    // accesible.
+    LaunchedEffect(notificationTargets) {
+        notificationTargets.collect { target ->
+            todayViewModel.openDoseFromNotification(
+                medicationId = target.medicationId,
+                scheduledDateTime = target.scheduledDateTime
+            )
+        }
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -126,14 +152,33 @@ private fun SimpleModeContent(onExitSimpleMode: () -> Unit) {
             onConfirmTaken = todayViewModel::toggleTaken,
             onPostpone = { id, time -> todayViewModel.postpone(id, time) },
             onExitSimpleMode = onExitSimpleMode,
+            onHighlightConsumed = todayViewModel::clearHighlightedDose,
             contentPadding = innerPadding
         )
     }
 }
 
 @Composable
-private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
+private fun NormalModeContent(
+    onEnterSimpleMode: () -> Unit,
+    notificationTargets: SharedFlow<MedicationNotificationTarget>
+) {
     val navController = rememberNavController()
+    // Target pendiente de consumir por la pantalla Hoy. Se rellena cuando el
+    // usuario toca el cuerpo de una notificación, y se limpia tras hacer
+    // scroll/highlight para que rotaciones no lo repitan.
+    var pendingDoseTarget by remember { mutableStateOf<MedicationNotificationTarget?>(null) }
+
+    LaunchedEffect(notificationTargets) {
+        notificationTargets.collect { target ->
+            pendingDoseTarget = target
+            navController.navigate(Screen.Today.route) {
+                popUpTo(Screen.Today.route) { inclusive = false }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
     val tutorialViewModel: TutorialViewModel = viewModel(factory = TutorialViewModel.Factory)
     val context = LocalContext.current
     val app = context.applicationContext as SaludarioApplication
@@ -220,6 +265,20 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                     .shouldShow(TutorialScreen.SIMPLE_MODE_HINT)
                     .collectAsState(initial = false)
                 val context = LocalContext.current
+
+                // Si llegó un objetivo desde una notificación mientras estábamos
+                // en otro destino, lo entregamos al ViewModel ahora que la
+                // pantalla está montada y borramos el pendiente para que no
+                // se repita en recomposiciones.
+                LaunchedEffect(pendingDoseTarget) {
+                    val target = pendingDoseTarget ?: return@LaunchedEffect
+                    viewModel.openDoseFromNotification(
+                        medicationId = target.medicationId,
+                        scheduledDateTime = target.scheduledDateTime
+                    )
+                    pendingDoseTarget = null
+                }
+
                 LaunchedEffect(viewModel) {
                     viewModel.snackbarEvents.collect { event ->
                         val messageRes = when (event) {
@@ -251,6 +310,9 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                         onPreviousDay = viewModel::previousDay,
                         onNextDay = viewModel::nextDay,
                         onDateSelected = viewModel::setDate,
+                        onPreviousCalendarMonth = viewModel::previousCalendarMonth,
+                        onNextCalendarMonth = viewModel::nextCalendarMonth,
+                        onSetVisibleCalendarMonth = viewModel::setVisibleCalendarMonth,
                         onEnterSimpleMode = onEnterSimpleMode,
                         onOpenSettings = { navController.navigate(Screen.Settings.route) },
                         onOpenReliability = { navController.navigate(Screen.ReminderReliability.route) },
@@ -259,6 +321,7 @@ private fun NormalModeContent(onEnterSimpleMode: () -> Unit) {
                         onDismissSimpleModeHint = {
                             tutorialViewModel.onUnderstood(TutorialScreen.SIMPLE_MODE_HINT)
                         },
+                        onHighlightConsumed = viewModel::clearHighlightedDose,
                         contentPadding = innerPadding
                     )
                     TutorialOverlayHost(
