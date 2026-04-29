@@ -22,11 +22,33 @@ fun Context.localizedMedicationUnit(unitKey: String): String {
     return resId?.let(::getString) ?: unitKey
 }
 
+/**
+ * Devuelve la unidad de medicación localizada y pluralizada según [quantity]
+ * (p. ej. "1 tableta" vs "2 tabletas"). Si la clave de unidad no es una de
+ * las canónicas reconocidas, devuelve `null` para que el llamante decida si
+ * cae a la versión singular o muestra el `unitKey` crudo.
+ */
+fun Context.localizedMedicationUnitPluralized(unitKey: String, quantity: Double): String? {
+    val pluralRes = when (unitKey.trim().lowercase(Locale.ROOT)) {
+        "tableta" -> R.plurals.unit_tablet_plural
+        "cápsula" -> R.plurals.unit_capsule_plural
+        "ml" -> R.plurals.unit_ml_plural
+        "gotas" -> R.plurals.unit_drops_plural
+        "mg" -> R.plurals.unit_mg_plural
+        else -> return null
+    }
+
+    val pluralQuantity = if (quantity == 1.0) 1 else 2
+    return runCatching { resources.getQuantityString(pluralRes, pluralQuantity) }.getOrNull()
+}
+
 fun Context.localizedMedicationDosage(dosage: Double, unitKey: String): String {
+    val unit = localizedMedicationUnitPluralized(unitKey, dosage)
+        ?: localizedMedicationUnit(unitKey)
     return getString(
         R.string.medication_dosage_format,
         formatMedicationAmount(dosage),
-        localizedMedicationUnit(unitKey)
+        unit
     )
 }
 

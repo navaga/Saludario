@@ -20,8 +20,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,7 +28,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SnackbarHostState
@@ -56,7 +53,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
@@ -65,6 +61,7 @@ import com.ignaciovalero.saludario.domain.insights.InsightSeverity
 import com.ignaciovalero.saludario.domain.insights.InsightType
 import com.ignaciovalero.saludario.domain.insights.MedicationInsight
 import com.ignaciovalero.saludario.domain.insights.dismissalKey
+import com.ignaciovalero.saludario.ui.common.RestockDialog
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -94,7 +91,6 @@ fun InsightsScreen(
     val loadingContentDescription = stringResource(R.string.insights_loading_cd)
     var selectedFilter by remember { mutableStateOf(InsightsFilter.ALL) }
     var restockTarget by remember { mutableStateOf<MedicationInsight?>(null) }
-    var restockAmount by remember { mutableStateOf("") }
     val temporarilyHiddenInsightKeys = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(uiState.insights) {
@@ -200,7 +196,6 @@ fun InsightsScreen(
                                 onPrimaryAction = {
                                     if (insight.type == InsightType.LOW_STOCK) {
                                         restockTarget = insight
-                                        restockAmount = ""
                                     } else {
                                         onOpenMedication(insight.medicationId)
                                     }
@@ -236,44 +231,13 @@ fun InsightsScreen(
         }
     }
 
-    val amountValue = restockAmount.replace(',', '.').toDoubleOrNull()
-    val canConfirmRestock = amountValue != null && amountValue > 0.0
-
     restockTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { restockTarget = null },
-            title = { Text(stringResource(R.string.medications_restock_title, target.medicationName)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                    Text(
-                        text = stringResource(R.string.medications_restock_message),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    OutlinedTextField(
-                        value = restockAmount,
-                        onValueChange = { restockAmount = it },
-                        label = { Text(stringResource(R.string.medications_restock_amount_label)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onAddStock(target.medicationId, amountValue!!)
-                        restockTarget = null
-                    },
-                    enabled = canConfirmRestock
-                ) {
-                    Text(stringResource(R.string.medications_restock_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { restockTarget = null }) {
-                    Text(stringResource(R.string.time_picker_cancel))
-                }
+        RestockDialog(
+            medicationName = target.medicationName,
+            onDismiss = { restockTarget = null },
+            onConfirm = { value ->
+                onAddStock(target.medicationId, value)
+                restockTarget = null
             }
         )
     }

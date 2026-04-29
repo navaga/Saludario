@@ -10,11 +10,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
+import com.ignaciovalero.saludario.core.app.saludarioApp
 import com.ignaciovalero.saludario.ui.SaludarioApp
 import com.ignaciovalero.saludario.ui.notification.MedicationNotificationTarget
 import com.ignaciovalero.saludario.ui.theme.SaludarioTheme
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -30,13 +32,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val app = application as SaludarioApplication
-        lifecycleScope.launch {
-            app.container.monetizationManager.refreshConsent(this@MainActivity)
+        val app = applicationContext.saludarioApp
+        if (app != null) {
+            lifecycleScope.launch {
+                app.container.monetizationManager.refreshConsent(this@MainActivity)
+            }
         }
         setContent {
-            val app = LocalContext.current.applicationContext as SaludarioApplication
-            val darkModeEnabled by app.container.userPreferencesDataSource.darkModeEnabled
+            val composeApp = LocalContext.current.saludarioApp
+            val darkModeFlow = composeApp?.container?.userPreferencesDataSource?.darkModeEnabled
+            val darkModeEnabled by (darkModeFlow ?: emptyFlow())
                 .collectAsState(initial = null)
             val useDarkTheme = darkModeEnabled ?: isSystemInDarkTheme()
 

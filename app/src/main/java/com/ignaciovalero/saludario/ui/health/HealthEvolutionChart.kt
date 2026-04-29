@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.core.formatting.formatHealthValueCompact
 import com.ignaciovalero.saludario.data.local.entity.HealthRecord
 import com.ignaciovalero.saludario.data.local.entity.HealthRecordType
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
@@ -224,14 +225,14 @@ private fun BloodPressureSummary(
     ) {
         PressureSummaryCard(
             label = stringResource(R.string.health_label_systolic),
-            value = formatHealthValue(record.value),
+            value = record.value.formatHealthValueCompact(),
             unit = record.unit,
             accentColor = primaryColor,
             modifier = Modifier.weight(1f)
         )
         PressureSummaryCard(
             label = stringResource(R.string.health_label_diastolic),
-            value = formatHealthValue(record.secondaryValue ?: 0.0),
+            value = (record.secondaryValue ?: 0.0).formatHealthValueCompact(),
             unit = record.unit,
             accentColor = secondaryColor,
             modifier = Modifier.weight(1f)
@@ -306,13 +307,6 @@ private data class HealthZone(
     val fillColor: Int,
     val legendColor: Int
 )
-
-private fun formatHealthValue(value: Double): String {
-    return when {
-        value % 1.0 == 0.0 -> value.toInt().toString()
-        else -> String.format(java.util.Locale.getDefault(), "%.1f", value)
-    }
-}
 
 private fun defaultUnitFor(type: HealthRecordType): String = when (type) {
     HealthRecordType.BLOOD_PRESSURE -> "mmHg"

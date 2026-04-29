@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.core.formatting.formatHealthValuePlain
 import com.ignaciovalero.saludario.data.local.entity.HealthRecord
 import com.ignaciovalero.saludario.data.local.entity.HealthRecordType
 import com.ignaciovalero.saludario.domain.repository.HealthRecordRepository
@@ -73,14 +74,14 @@ class HealthDetailViewModel(
             val range = plausibleRange(type, unitTrimmed, primary = true)
             if (range != null && (primary < range.first || primary > range.second)) {
                 primaryError = R.string.health_error_value_out_of_range
-                primaryErrorArgs = listOf(formatRange(range.first), formatRange(range.second))
+                primaryErrorArgs = listOf(range.first.formatHealthValuePlain(), range.second.formatHealthValuePlain())
             }
         }
         if (type == HealthRecordType.BLOOD_PRESSURE && secondaryError == null && secondary != null) {
             val range = plausibleRange(type, unitTrimmed, primary = false)
             if (range != null && (secondary < range.first || secondary > range.second)) {
                 secondaryError = R.string.health_error_value_out_of_range
-                secondaryErrorArgs = listOf(formatRange(range.first), formatRange(range.second))
+                secondaryErrorArgs = listOf(range.first.formatHealthValuePlain(), range.second.formatHealthValuePlain())
             }
         }
         if (type == HealthRecordType.OXYGEN_SATURATION && primaryError == null && primary != null && primary > 100) {
@@ -112,7 +113,7 @@ class HealthDetailViewModel(
                 repository.insert(
                     HealthRecord(
                         type = type,
-                        value = primary!!,
+                        value = requireNotNull(primary),
                         secondaryValue = if (type == HealthRecordType.BLOOD_PRESSURE) secondary else null,
                         unit = unitTrimmed,
                         recordedAt = LocalDateTime.now(),
@@ -195,8 +196,4 @@ private fun plausibleRange(
         }
         HealthRecordType.CUSTOM -> null
     }
-}
-
-private fun formatRange(value: Double): String {
-    return if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 }

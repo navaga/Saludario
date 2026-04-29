@@ -12,8 +12,6 @@ import com.ignaciovalero.saludario.ui.widget.MedicationWidgetUpdater
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 class SaludarioApplication : Application() {
     lateinit var container: AppContainer
@@ -24,14 +22,13 @@ class SaludarioApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         container = DefaultAppContainer(applicationContext)
-        runBlocking {
-            AppLanguageManager.applyLanguage(
-                container.userPreferencesDataSource.preferredLanguageCode.first()
-            )
-        }
+        // Aplica el idioma desde una caché síncrona (SharedPreferences) para
+        // evitar bloquear el hilo principal leyendo DataStore en arranque.
+        AppLanguageManager.init(this)
+        AppLanguageManager.applyLanguage(AppLanguageManager.cachedLanguageCode())
         initializeFirebase()
         installCrashLogging()
-        NotificationHelper.createNotificationChannel(this)
+        NotificationHelper.createNotificationChannels(this)
         container.workScheduler.scheduleDailyDoseGeneration()
         container.workScheduler.scheduleMissedDoseCheck()
         container.workScheduler.runImmediateDoseGeneration()

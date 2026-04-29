@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ignaciovalero.saludario.SaludarioApplication
 import com.ignaciovalero.saludario.core.localization.AppLanguageManager
 import com.ignaciovalero.saludario.data.ads.AdConsentStatus
+import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
 import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.ui.tutorial.TutorialManager
@@ -27,7 +28,8 @@ data class SettingsUiState(
     val dismissedInsightsCount: Int = 0,
     val darkModeEnabled: Boolean? = null,
     val adConsentStatus: AdConsentStatus = AdConsentStatus.UNKNOWN,
-    val adPrivacyOptionsRequired: Boolean = false
+    val adPrivacyOptionsRequired: Boolean = false,
+    val notificationSound: MedicationNotificationSound = MedicationNotificationSound.DEFAULT
 )
 
 class SettingsViewModel(
@@ -38,19 +40,24 @@ class SettingsViewModel(
     private val _events = MutableSharedFlow<Int>()
     val events: SharedFlow<Int> = _events.asSharedFlow()
     val uiState: StateFlow<SettingsUiState> = combine(
-        userPreferencesDataSource.preferredLanguageCode,
-        userPreferencesDataSource.dismissedInsightKeys(),
-        userPreferencesDataSource.darkModeEnabled,
-        userPreferencesDataSource.adConsentStatus,
-        userPreferencesDataSource.adPrivacyOptionsRequired
-    ) { languageCode, dismissedInsights, darkModeEnabled, adConsentStatus, adPrivacyOptionsRequired ->
-        SettingsUiState(
-            languageCode = AppLanguageManager.normalizeLanguageCode(languageCode),
-            dismissedInsightsCount = dismissedInsights.size,
-            darkModeEnabled = darkModeEnabled,
-            adConsentStatus = adConsentStatus,
-            adPrivacyOptionsRequired = adPrivacyOptionsRequired
-        )
+        combine(
+            userPreferencesDataSource.preferredLanguageCode,
+            userPreferencesDataSource.dismissedInsightKeys(),
+            userPreferencesDataSource.darkModeEnabled,
+            userPreferencesDataSource.adConsentStatus,
+            userPreferencesDataSource.adPrivacyOptionsRequired
+        ) { languageCode, dismissedInsights, darkModeEnabled, adConsentStatus, adPrivacyOptionsRequired ->
+            SettingsUiState(
+                languageCode = AppLanguageManager.normalizeLanguageCode(languageCode),
+                dismissedInsightsCount = dismissedInsights.size,
+                darkModeEnabled = darkModeEnabled,
+                adConsentStatus = adConsentStatus,
+                adPrivacyOptionsRequired = adPrivacyOptionsRequired
+            )
+        },
+        userPreferencesDataSource.medicationNotificationSound
+    ) { base, sound ->
+        base.copy(notificationSound = sound)
     }
         .stateIn(
             viewModelScope,
@@ -69,6 +76,12 @@ class SettingsViewModel(
     fun setDarkModeEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesDataSource.setDarkModeEnabled(enabled)
+        }
+    }
+
+    fun setMedicationNotificationSound(sound: MedicationNotificationSound) {
+        viewModelScope.launch {
+            userPreferencesDataSource.setMedicationNotificationSound(sound)
         }
     }
 

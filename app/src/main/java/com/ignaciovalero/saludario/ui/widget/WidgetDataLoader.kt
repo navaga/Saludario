@@ -22,7 +22,9 @@ suspend fun loadMedicationWidgetData(
     now: LocalDateTime = LocalDateTime.now()
 ): MedicationWidgetDataManager = coroutineScope {
     val appContext = context.applicationContext
-    val container = (appContext as SaludarioApplication).container
+    val app = appContext as? SaludarioApplication
+        ?: error("WidgetDataLoader requiere SaludarioApplication como Context.applicationContext")
+    val container = app.container
 
     val medicationsDeferred = async { container.medicationRepository.observeAll().first() }
     val logsDeferred = async { container.medicationLogRepository.observeAll().first() }

@@ -339,23 +339,27 @@ private fun DaySummary(
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
     val total = status?.totalDoses ?: 0
+    val taken = status?.takenDoses ?: 0
+    val missed = status?.missedDoses ?: 0
+    val pending = status?.pendingDoses ?: 0
+    val postponed = status?.postponedDoses ?: 0
     val summary = when {
         total == 0 -> stringResource(R.string.calendar_summary_no_doses)
-        status!!.takenDoses == total -> stringResource(
+        taken == total -> stringResource(
             R.string.calendar_summary_all_taken,
             total
         )
-        status.missedDoses > 0 -> stringResource(
+        missed > 0 -> stringResource(
             R.string.calendar_summary_with_missed,
             total,
-            status.takenDoses,
-            status.missedDoses
+            taken,
+            missed
         )
         else -> stringResource(
             R.string.calendar_summary_basic,
             total,
-            status.takenDoses,
-            status.pendingDoses + status.postponedDoses
+            taken,
+            pending + postponed
         )
     }
     Column(modifier = Modifier.fillMaxWidth()) {

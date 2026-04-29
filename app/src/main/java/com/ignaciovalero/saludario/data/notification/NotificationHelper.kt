@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.media.AudioAttributes
 import androidx.core.app.NotificationCompat
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.core.localization.localizedMedicationDosage
@@ -29,17 +30,51 @@ object NotificationHelper {
     const val EXTRA_OPEN_SCHEDULED_TIME = "extra_open_scheduled_time"
 
     fun createNotificationChannel(context: Context) {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            context.getString(R.string.notification_channel_name),
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = context.getString(R.string.notification_channel_description)
-            enableVibration(true)
-            lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        createNotificationChannels(context)
+    }
+
+    /**
+     * Registra un canal por cada [MedicationNotificationSound]. Cada canal lleva
+     * su propio sonido, lo que sortea la limitación de Android 8+ por la que
+     * el sonido de un canal es inmutable tras crearlo: el usuario cambia de
+     * sonido eligiendo otro canal, no editando uno existente.
+     */
+    fun createNotificationChannels(context: Context) {
+        val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        val channelName = context.getString(R.string.notification_channel_name)
+        val channelDescription = context.getString(R.string.notification_channel_description)
+
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        MedicationNotificationSound.entries.forEach { sound ->
+            val displayName = when (sound) {
+                MedicationNotificationSound.SYSTEM -> channelName
+                else -> context.getString(
+                    R.string.notification_channel_name_with_sound,
+                    channelName,
+                    context.getString(sound.displayNameRes)
+                )
+            }
+            val channel = NotificationChannel(
+                sound.channelId,
+                displayName,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = channelDescription
+                enableVibration(true)
+                lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                if (sound != MedicationNotificationSound.SYSTEM) {
+                    val resId = sound.rawResId(context)
+                    if (resId != 0) {
+                        setSound(sound.soundUri(context), audioAttributes)
+                    }
+                }
+            }
+            manager.createNotificationChannel(channel)
         }
-        val manager = context.getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(channel)
     }
 
     fun buildMedicationNotification(
@@ -48,7 +83,8 @@ object NotificationHelper {
         medicationName: String,
         dosage: Double,
         unit: String,
-        scheduledTime: String
+        scheduledTime: String,
+        sound: MedicationNotificationSound = MedicationNotificationSound.DEFAULT
     ): NotificationCompat.Builder {
         val localizedDosage = context.localizedMedicationDosage(dosage, unit)
         val localizedTime = context.localizedScheduledTime(scheduledTime)
@@ -100,7 +136,7 @@ object NotificationHelper {
             title = context.getString(R.string.notification_private_preview_title)
         )
 
-        return NotificationCompat.Builder(context, CHANNEL_ID)
+        return NotificationCompat.Builder(context, sound.channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.notification_title))
             .setContentText("$medicationName — $localizedDosage")

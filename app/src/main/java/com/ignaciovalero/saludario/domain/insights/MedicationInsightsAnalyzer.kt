@@ -48,10 +48,12 @@ class MedicationInsightsAnalyzer(private val context: Context) {
                 }
             }
             .map { (_, groupedInsights) ->
-                groupedInsights.maxWithOrNull(
-                    compareBy<MedicationInsight> { severityRank(it.severity) }
-                        .thenBy { it.message.length }
-                )!!
+                requireNotNull(
+                    groupedInsights.maxWithOrNull(
+                        compareBy<MedicationInsight> { severityRank(it.severity) }
+                            .thenBy { it.message.length }
+                    )
+                )
             }
             .distinctBy { "${it.medicationId}_${it.type}_${it.message}" }
             .sortedWith(

@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.ignaciovalero.saludario.R
-import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.core.app.saludarioApp
 import com.ignaciovalero.saludario.core.permissions.ReminderReliability
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
 import kotlinx.coroutines.launch
@@ -57,7 +57,7 @@ fun ReminderReliabilityBanner(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val app = remember(context) { context.applicationContext as SaludarioApplication }
+    val app = remember(context) { context.saludarioApp } ?: return
     val prefs = remember(app) { app.container.userPreferencesDataSource }
     val coroutineScope = rememberCoroutineScope()
 

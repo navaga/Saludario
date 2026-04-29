@@ -11,6 +11,7 @@ import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.SaludarioApplication
 import com.ignaciovalero.saludario.core.localization.localizedLocalTime
 import com.ignaciovalero.saludario.core.localization.localizedMedicationDosage
+import com.ignaciovalero.saludario.core.logging.ErrorReporter
 import com.ignaciovalero.saludario.data.local.entity.MedicationScheduleType
 import com.ignaciovalero.saludario.data.work.AppWorkScheduler
 import com.ignaciovalero.saludario.domain.repository.MedicationRepository
@@ -79,6 +80,7 @@ class MedicationListViewModel(
                     _userMessage.value = R.string.msg_medication_deleted
                 }
             } catch (e: Exception) {
+                ErrorReporter.report(TAG, "Error eliminando medicación id=$id", e)
                 _userMessage.value = R.string.msg_error_delete
             }
         }
@@ -90,6 +92,7 @@ class MedicationListViewModel(
                 medicationRepository.addStock(id, amount)
                 _userMessage.value = R.string.msg_stock_reloaded
             } catch (e: Exception) {
+                ErrorReporter.report(TAG, "Error recargando stock id=$id amount=$amount", e)
                 _userMessage.value = R.string.msg_error_stock_reload
             }
         }
@@ -126,6 +129,7 @@ class MedicationListViewModel(
 
     companion object {
         private const val MAX_QUANTITY_DECIMALS = 2
+        private const val TAG = "MedicationListVM"
 
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

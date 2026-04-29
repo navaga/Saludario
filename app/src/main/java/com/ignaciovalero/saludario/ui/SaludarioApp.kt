@@ -94,6 +94,7 @@ fun SaludarioApp(
             onBack = onboardingViewModel::previousPage,
             onAcceptedDisclaimerChange = onboardingViewModel::setAcceptedDisclaimer,
             onNotificationDecisionChange = onboardingViewModel::setNotificationDecision,
+            onNotificationSoundChange = onboardingViewModel::setNotificationSound,
             onComplete = onboardingViewModel::completeOnboarding
         )
         return
@@ -488,7 +489,8 @@ private fun NormalModeContent(
                 route = Screen.EditMedication.route,
                 arguments = listOf(navArgument("medicationId") { type = NavType.LongType })
             ) { backStackEntry ->
-                val medicationId = backStackEntry.arguments!!.getLong("medicationId")
+                val medicationId = backStackEntry.arguments?.getLong("medicationId")
+                    ?: return@composable
                 val viewModel: AddMedicationViewModel = viewModel(factory = AddMedicationViewModel.Factory)
                 val editState by viewModel.uiState.collectAsState()
                 androidx.compose.runtime.LaunchedEffect(medicationId) {

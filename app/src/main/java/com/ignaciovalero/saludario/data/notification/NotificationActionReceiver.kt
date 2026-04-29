@@ -6,6 +6,7 @@ import android.content.Intent
 import android.app.NotificationManager
 import com.ignaciovalero.saludario.SaludarioApplication
 import com.ignaciovalero.saludario.core.DoseConstants
+import com.ignaciovalero.saludario.core.logging.ErrorReporter
 import com.ignaciovalero.saludario.data.local.entity.MedicationLogEntity
 import com.ignaciovalero.saludario.data.local.entity.MedicationStatus
 import kotlinx.coroutines.CoroutineScope
@@ -22,6 +23,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         const val ACTION_SKIP = "com.ignaciovalero.saludario.ACTION_SKIP"
         const val EXTRA_MEDICATION_ID = "extra_medication_id"
         const val EXTRA_SCHEDULED_TIME = "extra_scheduled_time"
+        private const val TAG = "NotifActionReceiver"
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -34,7 +36,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         val notifId = NotificationHelper.notificationId(medicationId, scheduledTimeStr)
 
-        val app = context.applicationContext as SaludarioApplication
+        val app = context.applicationContext as? SaludarioApplication ?: return
         val container = app.container
 
         when (intent.action) {
@@ -74,7 +76,8 @@ class NotificationActionReceiver : BroadcastReceiver() {
                         notificationManager.cancel(notifId)
                     } catch (e: Exception) {
                         // La escritura falló — mantener la notificación visible para que
-                        // el usuario pueda volver a intentarlo
+                        // el usuario pueda volver a intentarlo, pero reportar el error.
+                        ErrorReporter.report(TAG, "Error marcando dosis como tomada", e)
                     } finally {
                         pendingResult.finish()
                     }
@@ -117,7 +120,8 @@ class NotificationActionReceiver : BroadcastReceiver() {
                         )
                         notificationManager.cancel(notifId)
                     } catch (e: Exception) {
-                        // El reprogramado falló — mantener la notificación visible
+                        // El reprogramado falló — mantener la notificación visible.
+                        ErrorReporter.report(TAG, "Error posponiendo dosis", e)
                     } finally {
                         pendingResult.finish()
                     }
@@ -150,7 +154,8 @@ class NotificationActionReceiver : BroadcastReceiver() {
                         }
                         notificationManager.cancel(notifId)
                     } catch (e: Exception) {
-                        // La escritura falló — mantener la notificación visible
+                        // La escritura falló — mantener la notificación visible.
+                        ErrorReporter.report(TAG, "Error marcando dosis como omitida", e)
                     } finally {
                         pendingResult.finish()
                     }

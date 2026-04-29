@@ -31,7 +31,9 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -41,6 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -69,6 +72,8 @@ import androidx.core.content.ContextCompat
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
+import com.ignaciovalero.saludario.ui.notification.rememberNotificationSoundPreviewPlayer
 import com.ignaciovalero.saludario.ui.settings.PrivacyPolicyScreen
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
 
@@ -82,6 +87,7 @@ fun OnboardingScreen(
     onBack: () -> Unit,
     onAcceptedDisclaimerChange: (Boolean) -> Unit,
     onNotificationDecisionChange: (NotificationDecision) -> Unit,
+    onNotificationSoundChange: (MedicationNotificationSound) -> Unit,
     onComplete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -181,6 +187,11 @@ fun OnboardingScreen(
                 2 -> NotificationsPage(
                     decision = uiState.notificationDecision,
                     onDecision = onNotificationDecisionChange,
+                    modifier = pageModifier
+                )
+                3 -> SoundSelectionPage(
+                    selectedSound = uiState.notificationSound,
+                    onSoundSelected = onNotificationSoundChange,
                     modifier = pageModifier
                 )
                 else -> ReliabilityPage(modifier = pageModifier)
@@ -538,6 +549,111 @@ private fun NotificationsPage(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+private fun SoundSelectionPage(
+    selectedSound: MedicationNotificationSound,
+    onSoundSelected: (MedicationNotificationSound) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val previewPlayer = rememberNotificationSoundPreviewPlayer()
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(AppSpacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(8.dp))
+        OnboardingHeroIcon(icon = Icons.Default.MusicNote)
+        Text(
+            text = stringResource(R.string.onboarding_sound_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            Text(
+                text = stringResource(R.string.onboarding_sound_body),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(AppSpacing.lg)
+            )
+        }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(AppSpacing.sm)
+            ) {
+                MedicationNotificationSound.entries.forEach { sound ->
+                    SoundOptionRow(
+                        sound = sound,
+                        selected = sound == selectedSound,
+                        onSelect = {
+                            onSoundSelected(sound)
+                            previewPlayer.play(sound)
+                        },
+                        onPreview = { previewPlayer.play(sound) }
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = stringResource(R.string.onboarding_sound_hint),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun SoundOptionRow(
+    sound: MedicationNotificationSound,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    onPreview: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onSelect)
+            .semantics { role = Role.RadioButton }
+            .padding(horizontal = AppSpacing.sm, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onSelect
+        )
+        Text(
+            text = stringResource(sound.displayNameRes),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        TextButton(onClick = onPreview) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = stringResource(R.string.medication_sound_preview))
+        }
     }
 }
 

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ignaciovalero.saludario.SaludarioApplication
 import com.ignaciovalero.saludario.core.localization.AppLanguageManager
+import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
 import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,7 +23,8 @@ data class OnboardingUiState(
     val page: Int = 0,
     val languageCode: String = "",
     val acceptedDisclaimer: Boolean = false,
-    val notificationDecision: NotificationDecision = NotificationDecision.PENDING
+    val notificationDecision: NotificationDecision = NotificationDecision.PENDING,
+    val notificationSound: MedicationNotificationSound = MedicationNotificationSound.DEFAULT
 )
 
 enum class NotificationDecision {
@@ -51,9 +53,13 @@ class OnboardingViewModel(
 
     val uiState: StateFlow<OnboardingUiState> = combine(
         localState,
-        userPreferencesDataSource.preferredLanguageCode
-    ) { local, savedLanguage ->
-        local.copy(languageCode = local.languageCode.ifBlank { savedLanguage })
+        userPreferencesDataSource.preferredLanguageCode,
+        userPreferencesDataSource.medicationNotificationSound
+    ) { local, savedLanguage, savedSound ->
+        local.copy(
+            languageCode = local.languageCode.ifBlank { savedLanguage },
+            notificationSound = savedSound
+        )
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
@@ -89,6 +95,13 @@ class OnboardingViewModel(
         localState.update { it.copy(notificationDecision = decision) }
     }
 
+    fun setNotificationSound(sound: MedicationNotificationSound) {
+        localState.update { it.copy(notificationSound = sound) }
+        viewModelScope.launch {
+            userPreferencesDataSource.setMedicationNotificationSound(sound)
+        }
+    }
+
     fun completeOnboarding() {
         val current = localState.value
         if (!current.acceptedDisclaimer) return
@@ -100,7 +113,7 @@ class OnboardingViewModel(
     }
 
     companion object {
-        const val ONBOARDING_PAGE_COUNT = 4
+        const val ONBOARDING_PAGE_COUNT = 5
         private const val LAST_PAGE = ONBOARDING_PAGE_COUNT - 1
 
         val Factory: ViewModelProvider.Factory = viewModelFactory {

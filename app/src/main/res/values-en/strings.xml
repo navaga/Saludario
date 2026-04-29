@@ -23,6 +23,8 @@
     <string name="settings_dark_mode_title">Dark mode</string>
     <string name="settings_dark_mode_enabled">Enabled</string>
     <string name="settings_dark_mode_disabled">Disabled</string>
+    <string name="settings_help_title">Help and tutorials</string>
+    <string name="settings_help_description">Replay the in-app tutorials or watch the welcome tour again.</string>
     <string name="settings_tutorials_title">Mini tutorials</string>
     <string name="settings_tutorials_description">Tap here to show the tutorials for all screens again.</string>
     <string name="settings_reset_tutorials">Show tutorials again</string>
@@ -41,6 +43,15 @@
     <string name="settings_widgets_pin_requested">Request sent. Confirm on your home screen.</string>
     <string name="settings_widgets_pin_not_supported">Your launcher doesn\'t allow pinning widgets from the app. Long-press the home screen to add them manually.</string>
     <string name="settings_widgets_pin_error">Couldn\'t start the add-widget flow.</string>
+    <string name="settings_sound_title">Reminder sound</string>
+    <string name="settings_sound_description">Pick the sound your medication reminders will play. Tap “Preview” to listen before selecting.</string>
+    <string name="medication_sound_preview">Preview</string>
+    <string name="medication_sound_system">System sound</string>
+    <string name="medication_sound_silofono">Silofono</string>
+    <string name="medication_sound_timbre">Bell</string>
+    <string name="medication_sound_estrellas">Stars</string>
+    <string name="medication_sound_campanas">Chimes</string>
+    <string name="medication_sound_universo">Universe</string>
     <string name="settings_ads_title">Ads and privacy</string>
     <string name="settings_ads_description">The free version may show an occasional ad when opening a chart. Ads are never shown in Today, forms, notifications, or simple mode.</string>
     <string name="settings_ads_consent_unknown">Ad consent: pending review</string>
@@ -76,6 +87,9 @@
     <string name="onboarding_reliability_title">Alarm reliability</string>
     <string name="onboarding_reliability_body">Some phones delay or silence alarms to save battery. If you notice that a reminder does not arrive on time, you can fix it from Settings → Reminder reliability.</string>
     <string name="onboarding_reliability_hint">We will warn you in the app if we detect that battery saving may affect your reminders.</string>
+    <string name="onboarding_sound_title">Choose how your reminders sound</string>
+    <string name="onboarding_sound_body">Keep your device’s default notification sound or pick one of ours. Tap “Preview” to listen before selecting.</string>
+    <string name="onboarding_sound_hint">You can change it any time from Settings.</string>
     <string name="onboarding_start_now">Continue</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_accept_continue">Accept and continue</string>
@@ -304,6 +318,27 @@
     <string name="unit_drops">drops</string>
     <string name="unit_mg">mg</string>
 
+    <plurals name="unit_tablet_plural">
+        <item quantity="one">tablet</item>
+        <item quantity="other">tablets</item>
+    </plurals>
+    <plurals name="unit_capsule_plural">
+        <item quantity="one">capsule</item>
+        <item quantity="other">capsules</item>
+    </plurals>
+    <plurals name="unit_drops_plural">
+        <item quantity="one">drop</item>
+        <item quantity="other">drops</item>
+    </plurals>
+    <plurals name="unit_ml_plural">
+        <item quantity="one">ml</item>
+        <item quantity="other">ml</item>
+    </plurals>
+    <plurals name="unit_mg_plural">
+        <item quantity="one">mg</item>
+        <item quantity="other">mg</item>
+    </plurals>
+
     <string name="schedule_daily">Daily</string>
     <string name="schedule_specific_days">Specific days</string>
     <string name="schedule_interval">Interval</string>
@@ -350,6 +385,7 @@ for today</string>
     <string name="permission_understood">Understood</string>
 
     <string name="notification_channel_name">Medication reminders</string>
+    <string name="notification_channel_name_with_sound">%1$s — %2$s</string>
     <string name="notification_channel_description">Notifications to help you take your medication on time</string>
     <string name="notification_title">Time for your medication</string>
     <string name="notification_body">It is time to take %1$s (%2$s).

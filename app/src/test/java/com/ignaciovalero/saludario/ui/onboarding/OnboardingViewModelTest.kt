@@ -1,5 +1,6 @@
 package com.ignaciovalero.saludario.ui.onboarding
 
+import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
 import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -34,6 +35,7 @@ class OnboardingViewModelTest {
         every { dataSource.onboardingCompleted } returns flowOf(false)
         every { dataSource.notificationOnboardingPromptHandled } returns flowOf(false)
         every { dataSource.preferredLanguageCode } returns MutableStateFlow("es")
+        every { dataSource.medicationNotificationSound } returns flowOf(MedicationNotificationSound.SYSTEM)
         coEvery { dataSource.setOnboardingCompleted(any()) } returns Unit
         coEvery { dataSource.setNotificationOnboardingPromptHandled(any()) } returns Unit
     }
@@ -135,7 +137,7 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `onboarding has four pages`() {
-        assertEquals(4, OnboardingViewModel.ONBOARDING_PAGE_COUNT)
+    fun `onboarding has five pages`() {
+        assertEquals(5, OnboardingViewModel.ONBOARDING_PAGE_COUNT)
     }
 }

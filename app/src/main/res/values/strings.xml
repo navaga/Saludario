@@ -24,6 +24,8 @@
     <string name="settings_dark_mode_title">Modo oscuro</string>
     <string name="settings_dark_mode_enabled">Activado</string>
     <string name="settings_dark_mode_disabled">Desactivado</string>
+    <string name="settings_help_title">Ayuda y tutoriales</string>
+    <string name="settings_help_description">Vuelve a ver los tutoriales de la app o repite la presentación inicial.</string>
     <string name="settings_tutorials_title">Mini tutoriales</string>
     <string name="settings_tutorials_description">Si lo pulsas, volverán a mostrarse los tutoriales de todas las pantallas.</string>
     <string name="settings_reset_tutorials">Volver a mostrar tutoriales</string>
@@ -42,6 +44,15 @@
     <string name="settings_widgets_pin_requested">Solicitud enviada. Confirma en la pantalla de inicio.</string>
     <string name="settings_widgets_pin_not_supported">Tu launcher no permite fijar widgets desde la app. Mantén pulsada la pantalla de inicio para añadirlos manualmente.</string>
     <string name="settings_widgets_pin_error">No se ha podido iniciar el flujo para añadir el widget.</string>
+    <string name="settings_sound_title">Sonido de los recordatorios</string>
+    <string name="settings_sound_description">Elige el sonido que sonará al recibir un recordatorio de medicación. Pulsa “Escuchar” para probarlo antes de seleccionarlo.</string>
+    <string name="medication_sound_preview">Escuchar</string>
+    <string name="medication_sound_system">Sonido del sistema</string>
+    <string name="medication_sound_silofono">Silofono</string>
+    <string name="medication_sound_timbre">Timbre</string>
+    <string name="medication_sound_estrellas">Estrellas</string>
+    <string name="medication_sound_campanas">Campanas</string>
+    <string name="medication_sound_universo">Universo</string>
     <string name="settings_ads_title">Anuncios y privacidad</string>
     <string name="settings_ads_description">La versión gratuita puede mostrar un anuncio ocasional al abrir una gráfica. Nunca se muestra en Hoy, formularios, notificaciones ni modo simple.</string>
     <string name="settings_ads_consent_unknown">Consentimiento publicitario: pendiente de revisar</string>
@@ -77,6 +88,9 @@
     <string name="onboarding_reliability_title">Fiabilidad de las alarmas</string>
     <string name="onboarding_reliability_body">Algunos móviles retrasan o silencian alarmas para ahorrar batería. Si notas que un recordatorio no llega a tiempo, podrás arreglarlo desde Ajustes → Fiabilidad de recordatorios.</string>
     <string name="onboarding_reliability_hint">Te avisaremos en la app si detectamos que el ahorro de batería puede afectar a tus recordatorios.</string>
+    <string name="onboarding_sound_title">Elige cómo suenan tus avisos</string>
+    <string name="onboarding_sound_body">Puedes mantener el sonido de notificación del sistema o elegir uno de los nuestros. Toca “Escuchar” para probarlos antes de seleccionar.</string>
+    <string name="onboarding_sound_hint">Podrás cambiarlo cuando quieras desde Ajustes.</string>
     <string name="onboarding_start_now">Continuar</string>
     <string name="onboarding_back">Atrás</string>
     <string name="onboarding_accept_continue">Aceptar y continuar</string>
@@ -313,6 +327,28 @@
     <string name="unit_drops">gotas</string>
     <string name="unit_mg">mg</string>
 
+    <!-- Pluralized unit names. Used to show "1 tableta" vs "2 tabletas". -->
+    <plurals name="unit_tablet_plural">
+        <item quantity="one">tableta</item>
+        <item quantity="other">tabletas</item>
+    </plurals>
+    <plurals name="unit_capsule_plural">
+        <item quantity="one">cápsula</item>
+        <item quantity="other">cápsulas</item>
+    </plurals>
+    <plurals name="unit_drops_plural">
+        <item quantity="one">gota</item>
+        <item quantity="other">gotas</item>
+    </plurals>
+    <plurals name="unit_ml_plural">
+        <item quantity="one">ml</item>
+        <item quantity="other">ml</item>
+    </plurals>
+    <plurals name="unit_mg_plural">
+        <item quantity="one">mg</item>
+        <item quantity="other">mg</item>
+    </plurals>
+
     <!-- Schedule options -->
     <string name="schedule_daily">Diario</string>
     <string name="schedule_specific_days">Días específicos</string>
@@ -363,6 +399,7 @@
 
     <!-- Notifications -->
     <string name="notification_channel_name">Recordatorios de medicación</string>
+    <string name="notification_channel_name_with_sound">%1$s — %2$s</string>
     <string name="notification_channel_description">Notificaciones para tomar tus medicamentos a tiempo</string>
     <string name="notification_title">Hora de tu medicación</string>
     <string name="notification_body">Es hora de tomar %1$s (%2$s).\nHorario programado: %3$s</string>

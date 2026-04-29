@@ -8,7 +8,9 @@ import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
 import com.ignaciovalero.saludario.data.notification.NotificationHelper
+import kotlinx.coroutines.flow.first
 
 class MedicationReminderWorker(
     private val appContext: Context,
@@ -29,7 +31,8 @@ class MedicationReminderWorker(
         if (medicationId == -1L) return Result.failure()
 
         // Verify the medication still exists
-        val app = appContext.applicationContext as SaludarioApplication
+        val app = appContext.applicationContext as? SaludarioApplication
+            ?: return Result.failure()
         val medication = app.container.medicationRepository.getById(medicationId)
             ?: return Result.success() // Medication was deleted, skip silently
 
@@ -39,13 +42,18 @@ class MedicationReminderWorker(
             return Result.failure()
         }
 
+        val sound = runCatching {
+            app.container.userPreferencesDataSource.medicationNotificationSound.first()
+        }.getOrDefault(MedicationNotificationSound.DEFAULT)
+
         val notification = NotificationHelper.buildMedicationNotification(
             context = appContext,
             medicationId = medicationId,
             medicationName = medication.name,
             dosage = medication.dosage,
             unit = medication.unit,
-            scheduledTime = scheduledTime
+            scheduledTime = scheduledTime,
+            sound = sound
         ).build()
 
         val notifId = NotificationHelper.notificationId(medicationId, scheduledTime)

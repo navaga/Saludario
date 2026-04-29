@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.core.localization.parseDecimalOrZero
+import com.ignaciovalero.saludario.core.logging.ErrorReporter
 import com.ignaciovalero.saludario.data.local.entity.MedicationEntity
 import com.ignaciovalero.saludario.data.local.entity.MedicationScheduleType
 import com.ignaciovalero.saludario.data.work.AppWorkScheduler
@@ -133,6 +135,7 @@ class AddMedicationViewModel(
                     intervalHours = medication.intervalHours?.toString() ?: ""
                 )
             } catch (e: Exception) {
+                ErrorReporter.report(TAG, "Error cargando medicación para edición", e)
                 _uiState.update { it.copy(userMessage = R.string.msg_error_load) }
             }
         }
@@ -197,7 +200,9 @@ class AddMedicationViewModel(
             current.stockRemaining.parseDecimalOrZero()
         }
         val lowStockThresholdValue = current.lowStockThreshold.parseDecimalOrZero()
-        val baseTime = current.selectedTime!!
+        val baseTime = requireNotNull(current.selectedTime) {
+            "selectedTime debe estar validado antes de construir el SavePlan"
+        }
         val scheduleType = current.scheduleType
 
         val times = if (scheduleType == MedicationScheduleType.INTERVAL) {
@@ -254,6 +259,7 @@ class AddMedicationViewModel(
             } catch (e: Exception) {
                 val msgRes = if (editingId != null) R.string.msg_error_update
                              else R.string.msg_error_save
+                ErrorReporter.report(TAG, "Error guardando medicación editingId=$editingId", e)
                 _uiState.update { it.copy(userMessage = msgRes) }
             }
         }
@@ -269,8 +275,6 @@ class AddMedicationViewModel(
         return result
     }
 
-    private fun String.parseDecimalOrZero(): Double = replace(',', '.').toDoubleOrNull() ?: 0.0
-
     private fun Double.toEditableNumber(): String {
         return if (this % 1.0 == 0.0) toInt().toString() else toString().trimEnd('0').trimEnd('.')
     }
@@ -284,6 +288,8 @@ class AddMedicationViewModel(
     }
 
     companion object {
+        private const val TAG = "AddMedicationVM"
+
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as SaludarioApplication

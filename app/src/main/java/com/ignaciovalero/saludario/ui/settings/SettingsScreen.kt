@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,15 +28,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +54,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.data.ads.AdConsentStatus
+import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
+import com.ignaciovalero.saludario.ui.notification.rememberNotificationSoundPreviewPlayer
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
 import com.ignaciovalero.saludario.ui.widget.WidgetPinning
 import kotlinx.coroutines.flow.collectLatest
@@ -106,176 +112,29 @@ fun SettingsScreen(
             }
         )
 
+        // 1. Recordatorios: lo más crítico arriba.
         ReliabilityEntryCard(onClick = onOpenReliability)
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(AppSpacing.lg),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_language_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.settings_language_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Box {
-                    OutlinedButton(onClick = { languageExpanded = !languageExpanded }) {
-                        Icon(
-                            imageVector = Icons.Default.Language,
-                            contentDescription = null
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = uiState.languageCode.uppercase())
-                    }
+        // 2. Sonido de los recordatorios: pertenece al mismo bloque mental que Fiabilidad.
+        NotificationSoundCard(
+            selected = uiState.notificationSound,
+            onSelected = viewModel::setMedicationNotificationSound
+        )
 
-                    DropdownMenu(
-                        expanded = languageExpanded,
-                        onDismissRequest = { languageExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.language_option_spanish)) },
-                            onClick = {
-                                viewModel.selectLanguage("es")
-                                languageExpanded = false
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.language_option_english)) },
-                            onClick = {
-                                viewModel.selectLanguage("en")
-                                languageExpanded = false
-                            }
-                        )
-                    }
-                }
+        // 3. Idioma y apariencia: personalización general.
+        LanguageAndAppearanceCard(
+            languageCode = uiState.languageCode,
+            languageExpanded = languageExpanded,
+            onLanguageExpandedChange = { languageExpanded = it },
+            onSelectLanguage = { code ->
+                viewModel.selectLanguage(code)
+                languageExpanded = false
+            },
+            isDarkModeEnabled = isDarkModeEnabled,
+            onDarkModeChange = viewModel::setDarkModeEnabled
+        )
 
-                Text(
-                    text = stringResource(R.string.settings_appearance_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.settings_appearance_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .toggleable(
-                            value = isDarkModeEnabled,
-                            role = Role.Switch,
-                            onValueChange = viewModel::setDarkModeEnabled
-                        ),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_dark_mode_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = stringResource(
-                                if (isDarkModeEnabled) {
-                                    R.string.settings_dark_mode_enabled
-                                } else {
-                                    R.string.settings_dark_mode_disabled
-                                }
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = isDarkModeEnabled,
-                        onCheckedChange = null
-                    )
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppSpacing.lg),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(AppSpacing.lg),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_tutorials_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.settings_tutorials_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = viewModel::resetTutorials,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(R.string.settings_reset_tutorials))
-                }
-            }
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppSpacing.lg),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(AppSpacing.lg),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_replay_onboarding_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.settings_replay_onboarding_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = viewModel::replayOnboarding,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = stringResource(R.string.settings_replay_onboarding_action))
-                }
-            }
-        }
-
+        // 4. Widgets en pantalla de inicio: acceso rápido.
         WidgetsCard(
             onAddNextDose = {
                 handleWidgetPin(
@@ -295,107 +154,339 @@ fun SettingsScreen(
             }
         )
 
-        Card(
+        // 5. Ayuda y tutoriales: fusión de "Mini tutoriales" y "Volver a ver el tutorial inicial".
+        HelpAndTutorialsCard(
+            onResetTutorials = viewModel::resetTutorials,
+            onReplayOnboarding = viewModel::replayOnboarding
+        )
+
+        // 6. Análisis y avisos: gestión secundaria.
+        AnalysisCard(
+            hiddenInsightsSummary = hiddenInsightsSummary,
+            restoreEnabled = uiState.dismissedInsightsCount > 0,
+            onRestore = viewModel::restoreDismissedInsights
+        )
+
+        // 7. Política de privacidad: información legal sobre datos.
+        PrivacyPolicyCard(onOpenPrivacyPolicy = onOpenPrivacyPolicy)
+
+        // 8. Anuncios y privacidad: consentimiento publicitario, separado del documento legal.
+        AdsPrivacyCard(
+            adConsentStatus = uiState.adConsentStatus,
+            adPrivacyOptionsRequired = uiState.adPrivacyOptionsRequired,
+            onOpenAdPrivacyOptions = onOpenAdPrivacyOptions
+        )
+    }
+}
+
+@Composable
+private fun LanguageAndAppearanceCard(
+    languageCode: String,
+    languageExpanded: Boolean,
+    onLanguageExpandedChange: (Boolean) -> Unit,
+    onSelectLanguage: (String) -> Unit,
+    isDarkModeEnabled: Boolean,
+    onDarkModeChange: (Boolean) -> Unit
+) {
+    val languageLabel = when (languageCode.lowercase()) {
+        "en" -> stringResource(R.string.language_option_english)
+        else -> stringResource(R.string.language_option_spanish)
+    }
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(AppSpacing.lg),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
-            ) {
-                Text(
-                    text = stringResource(R.string.settings_analysis_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.settings_analysis_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = hiddenInsightsSummary,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Button(
-                    onClick = viewModel::restoreDismissedInsights,
-                    enabled = uiState.dismissedInsightsCount > 0,
-                    modifier = Modifier.fillMaxWidth()
+            Text(
+                text = stringResource(R.string.settings_language_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_language_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Box {
+                OutlinedButton(onClick = { onLanguageExpandedChange(!languageExpanded) }) {
+                    Icon(
+                        imageVector = Icons.Default.Language,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(text = languageLabel)
+                }
+
+                DropdownMenu(
+                    expanded = languageExpanded,
+                    onDismissRequest = { onLanguageExpandedChange(false) }
                 ) {
-                    Text(text = stringResource(R.string.settings_restore_hidden_insights))
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.language_option_spanish)) },
+                        onClick = { onSelectLanguage("es") }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.language_option_english)) },
+                        onClick = { onSelectLanguage("en") }
+                    )
                 }
             }
-        }
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = AppSpacing.lg),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
-        ) {
-            Column(
+            Text(
+                text = stringResource(R.string.settings_appearance_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_appearance_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(AppSpacing.lg),
-                verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+                    .toggleable(
+                        value = isDarkModeEnabled,
+                        role = Role.Switch,
+                        onValueChange = onDarkModeChange
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.settings_privacy_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.settings_privacy_description),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = stringResource(R.string.settings_ads_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = stringResource(R.string.settings_ads_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = when (uiState.adConsentStatus) {
-                        AdConsentStatus.REQUIRED -> stringResource(R.string.settings_ads_consent_required)
-                        AdConsentStatus.NOT_REQUIRED -> stringResource(R.string.settings_ads_consent_not_required)
-                        AdConsentStatus.OBTAINED -> stringResource(R.string.settings_ads_consent_obtained)
-                        AdConsentStatus.UNKNOWN -> stringResource(R.string.settings_ads_consent_unknown)
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (uiState.adPrivacyOptionsRequired) {
-                    OutlinedButton(
-                        onClick = onOpenAdPrivacyOptions,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = stringResource(R.string.settings_ads_privacy_options))
-                    }
-                } else {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)
+                ) {
                     Text(
-                        text = stringResource(R.string.settings_ads_privacy_options_unavailable),
+                        text = stringResource(R.string.settings_dark_mode_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = stringResource(
+                            if (isDarkModeEnabled) {
+                                R.string.settings_dark_mode_enabled
+                            } else {
+                                R.string.settings_dark_mode_disabled
+                            }
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Button(
-                    onClick = onOpenPrivacyPolicy,
+                Switch(
+                    checked = isDarkModeEnabled,
+                    onCheckedChange = null
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HelpAndTutorialsCard(
+    onResetTutorials: () -> Unit,
+    onReplayOnboarding: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_help_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_help_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(R.string.settings_tutorials_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_tutorials_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onResetTutorials,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.settings_reset_tutorials))
+            }
+            Text(
+                text = stringResource(R.string.settings_replay_onboarding_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_replay_onboarding_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            OutlinedButton(
+                onClick = onReplayOnboarding,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.settings_replay_onboarding_action))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnalysisCard(
+    hiddenInsightsSummary: String,
+    restoreEnabled: Boolean,
+    onRestore: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_analysis_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_analysis_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = hiddenInsightsSummary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onRestore,
+                enabled = restoreEnabled,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.settings_restore_hidden_insights))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PrivacyPolicyCard(onOpenPrivacyPolicy: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_privacy_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_privacy_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onOpenPrivacyPolicy,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.settings_open_privacy_policy))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdsPrivacyCard(
+    adConsentStatus: AdConsentStatus,
+    adPrivacyOptionsRequired: Boolean,
+    onOpenAdPrivacyOptions: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_ads_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_ads_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = when (adConsentStatus) {
+                    AdConsentStatus.REQUIRED -> stringResource(R.string.settings_ads_consent_required)
+                    AdConsentStatus.NOT_REQUIRED -> stringResource(R.string.settings_ads_consent_not_required)
+                    AdConsentStatus.OBTAINED -> stringResource(R.string.settings_ads_consent_obtained)
+                    AdConsentStatus.UNKNOWN -> stringResource(R.string.settings_ads_consent_unknown)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (adPrivacyOptionsRequired) {
+                OutlinedButton(
+                    onClick = onOpenAdPrivacyOptions,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = stringResource(R.string.settings_open_privacy_policy))
+                    Text(text = stringResource(R.string.settings_ads_privacy_options))
                 }
+            } else {
+                Text(
+                    text = stringResource(R.string.settings_ads_privacy_options_unavailable),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
@@ -508,6 +599,76 @@ private fun WidgetsCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(R.string.settings_widgets_add_today))
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationSoundCard(
+    selected: MedicationNotificationSound,
+    onSelected: (MedicationNotificationSound) -> Unit
+) {
+    val previewPlayer = rememberNotificationSoundPreviewPlayer()
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_sound_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_sound_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            MedicationNotificationSound.entries.forEach { sound ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onSelected(sound)
+                            previewPlayer.play(sound)
+                        }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                ) {
+                    RadioButton(
+                        selected = sound == selected,
+                        onClick = {
+                            onSelected(sound)
+                            previewPlayer.play(sound)
+                        }
+                    )
+                    Text(
+                        text = stringResource(sound.displayNameRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TextButton(onClick = { previewPlayer.play(sound) }) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(text = stringResource(R.string.medication_sound_preview))
+                    }
+                }
             }
         }
     }

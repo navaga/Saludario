@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.ignaciovalero.saludario.data.ads.AdConsentStatus
 import com.ignaciovalero.saludario.data.ads.MonetizationConfig
+import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -60,6 +61,20 @@ class UserPreferencesDataSource(
 
     val isPremiumNoAds: Flow<Boolean> = dataStore.data.map { prefs ->
         prefs[PREMIUM_NO_ADS_KEY] ?: false
+    }
+
+    /**
+     * Sonido seleccionado para los recordatorios de medicación. Si no se ha
+     * elegido ninguno, devuelve [MedicationNotificationSound.DEFAULT] (sistema).
+     */
+    val medicationNotificationSound: Flow<MedicationNotificationSound> = dataStore.data.map { prefs ->
+        MedicationNotificationSound.fromStorage(prefs[MEDICATION_NOTIFICATION_SOUND_KEY])
+    }
+
+    suspend fun setMedicationNotificationSound(sound: MedicationNotificationSound) {
+        dataStore.edit { prefs ->
+            prefs[MEDICATION_NOTIFICATION_SOUND_KEY] = sound.storageKey
+        }
     }
 
     suspend fun setSimpleMode(enabled: Boolean) {
@@ -250,6 +265,8 @@ class UserPreferencesDataSource(
         val PREMIUM_NO_ADS_KEY = booleanPreferencesKey("premium_no_ads")
         val REMINDER_RELIABILITY_BANNER_DISMISSED_AT_KEY =
             longPreferencesKey("reminder_reliability_banner_dismissed_at")
+        val MEDICATION_NOTIFICATION_SOUND_KEY =
+            stringPreferencesKey("medication_notification_sound")
         const val DEFAULT_LANGUAGE = "es"
         val DEFAULT_GRAPH_AD_COOLDOWN_MINUTES = MonetizationConfig.defaultGraphAdCooldownMinutes
         const val TUTORIAL_KEY_PREFIX = "tutorial_seen_"

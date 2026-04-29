@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.core.logging.ErrorReporter
 import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
 import com.ignaciovalero.saludario.domain.insights.MedicationInsightsAnalyzer
 import com.ignaciovalero.saludario.domain.insights.MedicationInsight
@@ -69,6 +70,7 @@ class InsightsViewModel(
                 medicationRepository.addStock(id, amount)
                 _userMessage.value = R.string.msg_stock_reloaded
             } catch (e: Exception) {
+                ErrorReporter.report(TAG, "Error recargando stock id=$id amount=$amount", e)
                 _userMessage.value = R.string.msg_error_stock_reload
             }
         }
@@ -89,6 +91,8 @@ class InsightsViewModel(
     }
 
     companion object {
+        private const val TAG = "InsightsVM"
+
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as SaludarioApplication

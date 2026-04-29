@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -30,7 +28,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,8 +51,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.KeyboardType
 import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.ui.common.RestockDialog
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
 import com.ignaciovalero.saludario.ui.theme.SaludarioTheme
 
@@ -73,7 +70,6 @@ fun MedicationListScreen(
 ) {
     val context = LocalContext.current
     var restockTarget by remember { mutableStateOf<MedicationItem?>(null) }
-    var restockAmount by remember { mutableStateOf("") }
     var deleteTarget by remember { mutableStateOf<MedicationItem?>(null) }
 
     LaunchedEffect(uiState.userMessage) {
@@ -121,7 +117,6 @@ fun MedicationListScreen(
                         onDelete = { deleteTarget = med },
                         onAddStock = {
                             restockTarget = med
-                            restockAmount = ""
                         }
                     )
                 }
@@ -157,44 +152,13 @@ fun MedicationListScreen(
         )
     }
 
-    val amountValue = restockAmount.replace(',', '.').toDoubleOrNull()
-    val canConfirmRestock = amountValue != null && amountValue > 0.0
-
     restockTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { restockTarget = null },
-            title = { Text(stringResource(R.string.medications_restock_title, target.name)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
-                    Text(
-                        text = stringResource(R.string.medications_restock_message),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    OutlinedTextField(
-                        value = restockAmount,
-                        onValueChange = { restockAmount = it },
-                        label = { Text(stringResource(R.string.medications_restock_amount_label)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onAddStock(target.id, amountValue!!)
-                        restockTarget = null
-                    },
-                    enabled = canConfirmRestock
-                ) {
-                    Text(stringResource(R.string.medications_restock_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { restockTarget = null }) {
-                    Text(stringResource(R.string.time_picker_cancel))
-                }
+        RestockDialog(
+            medicationName = target.name,
+            onDismiss = { restockTarget = null },
+            onConfirm = { value ->
+                onAddStock(target.id, value)
+                restockTarget = null
             }
         )
     }

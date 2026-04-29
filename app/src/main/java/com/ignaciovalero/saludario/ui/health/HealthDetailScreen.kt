@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ignaciovalero.saludario.R
+import com.ignaciovalero.saludario.core.formatting.formatHealthValuePlain
 import com.ignaciovalero.saludario.data.local.entity.HealthRecord
 import com.ignaciovalero.saludario.data.local.entity.HealthRecordType
 import com.ignaciovalero.saludario.ui.theme.AppSpacing
@@ -502,9 +503,9 @@ private fun formatSummaryValue(
     unit: String
 ): String {
     return if (type == HealthRecordType.BLOOD_PRESSURE && secondary != null) {
-        "${formatNumericValue(primary)}/${formatNumericValue(secondary)} $unit"
+        "${primary.formatHealthValuePlain()}/${secondary.formatHealthValuePlain()} $unit"
     } else {
-        "${formatNumericValue(primary)} $unit"
+        "${primary.formatHealthValuePlain()} $unit"
     }
 }
 
@@ -589,16 +590,12 @@ fun HealthRecordType.displayName(): String {
 }
 
 private fun HealthRecord.displayValue(): String {
-    val primaryText = formatNumericValue(value)
+    val primaryText = value.formatHealthValuePlain()
     return if (type == HealthRecordType.BLOOD_PRESSURE && secondaryValue != null) {
-        "${primaryText}/${formatNumericValue(secondaryValue)} $unit"
+        "${primaryText}/${secondaryValue.formatHealthValuePlain()} $unit"
     } else {
         "$primaryText $unit"
     }
-}
-
-private fun formatNumericValue(value: Double): String {
-    return if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 }
 
 @Composable
