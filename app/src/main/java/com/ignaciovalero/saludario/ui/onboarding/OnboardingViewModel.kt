@@ -63,7 +63,7 @@ class OnboardingViewModel(
     }.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
-        OnboardingUiState(languageCode = AppLanguageManager.DEFAULT_LANGUAGE_CODE)
+        OnboardingUiState(languageCode = AppLanguageManager.cachedLanguageCode())
     )
 
     fun selectLanguage(languageCode: String) {

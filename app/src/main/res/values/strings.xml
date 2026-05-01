@@ -71,6 +71,8 @@
     <string name="settings_ads_privacy_updated">Opciones de privacidad actualizadas</string>
     <string name="language_option_spanish">Español (ES)</string>
     <string name="language_option_english">English (EN)</string>
+    <string name="language_flag_spanish_cd">Bandera de España</string>
+    <string name="language_flag_english_cd">Bandera del Reino Unido</string>
     <string name="today_settings_cd">Abrir ajustes</string>
     <string name="privacy_policy_title">Política de privacidad</string>
     <string name="onboarding_welcome_title">Bienvenido a Saludario ❤️</string>

@@ -1,0 +1,4 @@
+- Notification sounds now work correctly on Xiaomi/MIUI: they're installed in the system and no longer get replaced by the default tone.
+- Language selector with flags in onboarding and Settings (Spanish and English).
+- On first launch, the app honors your device language if supported.
+- Minor stability improvements.

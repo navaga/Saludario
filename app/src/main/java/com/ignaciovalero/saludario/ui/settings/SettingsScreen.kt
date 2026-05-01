@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -249,9 +250,19 @@ private fun LanguageAndAppearanceCard(
             )
             Box {
                 OutlinedButton(onClick = { onLanguageExpandedChange(!languageExpanded) }) {
+                    val flagRes = when (languageCode.lowercase()) {
+                        "en" -> R.drawable.flag_gb
+                        else -> R.drawable.flag_es
+                    }
+                    val flagCd = when (languageCode.lowercase()) {
+                        "en" -> R.string.language_flag_english_cd
+                        else -> R.string.language_flag_spanish_cd
+                    }
                     Icon(
-                        imageVector = Icons.Default.Language,
-                        contentDescription = null
+                        painter = painterResource(flagRes),
+                        contentDescription = stringResource(flagCd),
+                        modifier = Modifier.size(20.dp),
+                        tint = androidx.compose.ui.graphics.Color.Unspecified
                     )
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(text = languageLabel)
@@ -263,10 +274,26 @@ private fun LanguageAndAppearanceCard(
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.language_option_spanish)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.flag_es),
+                                contentDescription = stringResource(R.string.language_flag_spanish_cd),
+                                modifier = Modifier.size(24.dp),
+                                tint = androidx.compose.ui.graphics.Color.Unspecified
+                            )
+                        },
                         onClick = { onSelectLanguage("es") }
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.language_option_english)) },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.flag_gb),
+                                contentDescription = stringResource(R.string.language_flag_english_cd),
+                                modifier = Modifier.size(24.dp),
+                                tint = androidx.compose.ui.graphics.Color.Unspecified
+                            )
+                        },
                         onClick = { onSelectLanguage("en") }
                     )
                 }

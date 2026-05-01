@@ -70,6 +70,8 @@
     <string name="settings_ads_privacy_updated">Privacy options updated</string>
     <string name="language_option_spanish">Spanish (ES)</string>
     <string name="language_option_english">English (EN)</string>
+    <string name="language_flag_spanish_cd">Flag of Spain</string>
+    <string name="language_flag_english_cd">Flag of the United Kingdom</string>
     <string name="today_settings_cd">Open settings</string>
     <string name="privacy_policy_title">Privacy policy</string>
     <string name="onboarding_welcome_title">Welcome to Saludario ❤️</string>

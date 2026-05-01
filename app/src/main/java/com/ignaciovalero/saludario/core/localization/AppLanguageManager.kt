@@ -4,8 +4,15 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import java.util.Locale
 
 object AppLanguageManager {
+    /**
+     * Idioma utilizado como último recurso cuando ni el usuario ni el sistema
+     * proporcionan uno soportado. No se considera el idioma «por defecto»
+     * para el usuario: en una instalación nueva se prefiere siempre el del
+     * dispositivo (ver [systemLanguageCode]).
+     */
     const val DEFAULT_LANGUAGE_CODE = "es"
     private val supportedLanguageCodes = setOf("es", "en")
 
@@ -26,11 +33,24 @@ object AppLanguageManager {
     }
 
     /**
-     * Idioma cacheado de forma síncrona. Devuelve [DEFAULT_LANGUAGE_CODE] si
-     * el usuario aún no ha elegido uno o si la caché no se ha inicializado.
+     * Idioma cacheado de forma síncrona. Si el usuario aún no ha elegido uno,
+     * usa el idioma actual del sistema cuando esté soportado, y como último
+     * recurso [DEFAULT_LANGUAGE_CODE].
      */
-    fun cachedLanguageCode(): String =
-        normalizeLanguageCode(cache?.getString(KEY_LANGUAGE, null) ?: DEFAULT_LANGUAGE_CODE)
+    fun cachedLanguageCode(): String {
+        val stored = cache?.getString(KEY_LANGUAGE, null)
+        if (!stored.isNullOrBlank()) return normalizeLanguageCode(stored)
+        return systemLanguageCode()
+    }
+
+    /**
+     * Devuelve el idioma del dispositivo si está soportado por la app,
+     * o [DEFAULT_LANGUAGE_CODE] si no lo está.
+     */
+    fun systemLanguageCode(): String {
+        val systemTag = Locale.getDefault().language.lowercase()
+        return if (systemTag in supportedLanguageCodes) systemTag else DEFAULT_LANGUAGE_CODE
+    }
 
     fun applyLanguage(languageCode: String) {
         val normalizedCode = normalizeLanguageCode(languageCode)

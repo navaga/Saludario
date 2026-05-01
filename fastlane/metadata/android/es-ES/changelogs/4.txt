@@ -1,0 +1,4 @@
+- Sonidos de notificación compatibles con Xiaomi/MIUI: ahora se instalan en el sistema y suenan correctamente, no se sustituyen por el sonido por defecto.
+- Selector de idioma con banderas en el onboarding y en Ajustes (España e Inglés).
+- En la primera apertura, la app respeta el idioma del dispositivo si está soportado.
+- Mejoras menores de estabilidad.

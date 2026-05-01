@@ -1,0 +1,41 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Fondo azul (círculo). -->
+    <path
+        android:pathData="M12,2 a10,10 0 1,0 0,20 a10,10 0 1,0 0,-20 z"
+        android:fillColor="#012169" />
+    <!-- Diagonales blancas (cruz de San Andrés ensanchada). -->
+    <path
+        android:pathData="M3.7,5.2 L18.8,20.3 L20.3,18.8 L5.2,3.7 Z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M20.3,5.2 L18.8,3.7 L3.7,18.8 L5.2,20.3 Z"
+        android:fillColor="#FFFFFF" />
+    <!-- Diagonales rojas (cruz de San Patricio, más finas). -->
+    <path
+        android:pathData="M4.4,4.4 L19.6,19.6 L20.3,18.8 L5.2,3.7 Z"
+        android:fillColor="#C8102E" />
+    <path
+        android:pathData="M19.6,4.4 L4.4,19.6 L3.7,18.8 L18.8,3.7 Z"
+        android:fillColor="#C8102E" />
+    <!-- Cruz de San Jorge (blanca de fondo, roja encima). -->
+    <path
+        android:pathData="M10.4,2.4 h3.2 v19.2 h-3.2 z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M2.4,10.4 h19.2 v3.2 h-19.2 z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M11.0,2.2 h2.0 v19.6 h-2.0 z"
+        android:fillColor="#C8102E" />
+    <path
+        android:pathData="M2.2,11.0 h19.6 v2.0 h-19.6 z"
+        android:fillColor="#C8102E" />
+    <!-- Borde sutil. -->
+    <path
+        android:pathData="M12,2.5 a9.5,9.5 0 1,0 0,19 a9.5,9.5 0 1,0 0,-19 z m0,1 a8.5,8.5 0 1,1 0,17 a8.5,8.5 0 1,1 0,-17 z"
+        android:fillColor="#33000000" />
+</vector>

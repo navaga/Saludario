@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.ignaciovalero.saludario.core.localization.AppLanguageManager
 import com.ignaciovalero.saludario.data.ads.AdConsentStatus
 import com.ignaciovalero.saludario.data.ads.MonetizationConfig
 import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
@@ -36,7 +37,7 @@ class UserPreferencesDataSource(
     }
 
     val preferredLanguageCode: Flow<String> = dataStore.data.map { prefs ->
-        prefs[PREFERRED_LANGUAGE_KEY] ?: DEFAULT_LANGUAGE
+        prefs[PREFERRED_LANGUAGE_KEY] ?: AppLanguageManager.systemLanguageCode()
     }
 
     val darkModeEnabled: Flow<Boolean?> = dataStore.data.map { prefs ->
