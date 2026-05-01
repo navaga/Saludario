@@ -1,0 +1,7 @@
+- Export your data as CSV/ZIP from Settings and share it with your doctor.
+- Clearer monthly calendar with per-day markers.
+- "Next dose" and "Today" widgets are more readable and stay up to date.
+- Polished UX on Today, Insights and Health (hierarchy and contrast).
+- Accessibility: larger touch targets and better TalkBack labels.
+- More stability on launch and on incoming notifications.
+- Pluralization and locale-aware number formatting.

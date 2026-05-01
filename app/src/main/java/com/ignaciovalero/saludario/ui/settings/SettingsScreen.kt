@@ -1,5 +1,7 @@
 package com.ignaciovalero.saludario.ui.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,6 +78,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
+    val isExporting by viewModel.isExporting.collectAsState()
     var languageExpanded by remember { mutableStateOf(false) }
     val isDarkModeEnabled = uiState.darkModeEnabled ?: isSystemInDarkTheme()
     val hiddenInsightsSummary = if (uiState.dismissedInsightsCount > 0) {
@@ -91,6 +94,29 @@ fun SettingsScreen(
     LaunchedEffect(viewModel) {
         viewModel.events.collectLatest { messageRes ->
             snackbarHostState.showSnackbar(message = context.getString(messageRes))
+        }
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.exportEvents.collectLatest { event ->
+            when (event) {
+                is SettingsExportEvent.Ready -> {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/zip"
+                        putExtra(Intent.EXTRA_STREAM, Uri.parse(event.shareUriString))
+                        putExtra(
+                            Intent.EXTRA_SUBJECT,
+                            context.getString(R.string.settings_export_share_subject)
+                        )
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    val chooser = Intent.createChooser(
+                        shareIntent,
+                        context.getString(R.string.settings_export_share_title)
+                    ).apply { addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+                    context.startActivity(chooser)
+                }
+            }
         }
     }
 
@@ -167,10 +193,16 @@ fun SettingsScreen(
             onRestore = viewModel::restoreDismissedInsights
         )
 
-        // 7. Política de privacidad: información legal sobre datos.
+        // 7. Exportación de datos: portabilidad para médico/cuidador.
+        DataExportCard(
+            isExporting = isExporting,
+            onExport = viewModel::exportData
+        )
+
+        // 8. Política de privacidad: información legal sobre datos.
         PrivacyPolicyCard(onOpenPrivacyPolicy = onOpenPrivacyPolicy)
 
-        // 8. Anuncios y privacidad: consentimiento publicitario, separado del documento legal.
+        // 9. Anuncios y privacidad: consentimiento publicitario, separado del documento legal.
         AdsPrivacyCard(
             adConsentStatus = uiState.adConsentStatus,
             adPrivacyOptionsRequired = uiState.adPrivacyOptionsRequired,
@@ -395,6 +427,51 @@ private fun AnalysisCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(R.string.settings_restore_hidden_insights))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DataExportCard(
+    isExporting: Boolean,
+    onExport: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = AppSpacing.lg, vertical = AppSpacing.lg),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(AppSpacing.lg),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.md)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_export_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_export_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onExport,
+                enabled = !isExporting,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = if (isExporting) {
+                        stringResource(R.string.settings_export_in_progress)
+                    } else {
+                        stringResource(R.string.settings_export_action)
+                    }
+                )
             }
         }
     }

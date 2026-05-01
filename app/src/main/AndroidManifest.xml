@@ -47,6 +47,19 @@
             android:name=".data.notification.NotificationActionReceiver"
             android:exported="false" />
 
+        <!-- FileProvider para compartir ficheros generados por DataExporter
+             (saludario-export-*.zip) con apps externas vía Intent.ACTION_SEND.
+             Authority sigue la convención <packageName>.fileprovider. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
+
         <!-- Widget pequeño: siguiente toma -->
         <receiver
             android:name=".ui.widget.NextDoseWidgetProvider"

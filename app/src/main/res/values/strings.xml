@@ -34,6 +34,13 @@
     <string name="settings_replay_onboarding_description">Muestra de nuevo la presentación inicial de la app, el aviso médico y los pasos de permisos.</string>
     <string name="settings_replay_onboarding_action">Volver a ver el tutorial inicial</string>
     <string name="settings_replay_onboarding_done">Se mostrará al volver a la pantalla principal.</string>
+    <string name="settings_export_title">Exportar mis datos</string>
+    <string name="settings_export_description">Genera un archivo ZIP con tus medicamentos, tomas y registros de salud (formato CSV) listo para compartir con tu médico o cuidador.</string>
+    <string name="settings_export_action">Exportar y compartir</string>
+    <string name="settings_export_in_progress">Generando archivo…</string>
+    <string name="settings_export_share_title">Compartir mis datos de Saludario</string>
+    <string name="settings_export_share_subject">Mis datos de Saludario</string>
+    <string name="settings_export_error">No se pudo generar la exportación. Inténtalo de nuevo.</string>
     <string name="settings_privacy_title">Política de privacidad</string>
     <string name="settings_privacy_description">Consulta dentro de la app cómo se gestionan los datos y las notificaciones.</string>
     <string name="settings_open_privacy_policy">Ver política de privacidad</string>
@@ -128,6 +135,7 @@
     <string name="health_error_oxygen_max_100">La saturación no puede superar el 100%</string>
     <string name="health_error_value_out_of_range">Valor fuera del rango plausible (%1$s–%2$s)</string>
     <string name="health_disclaimer">Datos para seguimiento personal. Saludario no es un dispositivo médico ni sustituye el consejo profesional. Consulta a un sanitario ante dudas o síntomas.</string>
+    <string name="health_disclaimer_icon_cd">Información importante</string>
     <string name="health_zone_orientative_note">Rangos orientativos; pueden variar según la persona y el contexto.</string>
     <string name="health_zone_low">Bajo</string>
     <string name="health_zone_normal">Normal</string>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!--
+        Carpeta interna a la que el DataExporter escribe los ZIP que el usuario
+        comparte vía Intent.ACTION_SEND. Aislada en `cache/exports/` para que
+        Android pueda limpiarla automáticamente si el dispositivo necesita
+        espacio y para que no se mezcle con otros ficheros temporales.
+    -->
+    <cache-path
+        name="exports"
+        path="exports/" />
+</paths>

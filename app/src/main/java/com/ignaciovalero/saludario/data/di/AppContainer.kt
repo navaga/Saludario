@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import androidx.work.WorkManager
+import com.ignaciovalero.saludario.core.export.DataExporter
 import com.ignaciovalero.saludario.data.ads.MonetizationManager
 import com.ignaciovalero.saludario.data.local.DatabaseMigrations
 import com.ignaciovalero.saludario.data.local.SaludarioDatabase
@@ -29,6 +30,7 @@ interface AppContainer {
     val monetizationManager: MonetizationManager
     val healthGraphAccessPolicy: HealthGraphAccessPolicy
     val workScheduler: AppWorkScheduler
+    val dataExporter: DataExporter
 }
 
 class DefaultAppContainer(
@@ -92,5 +94,14 @@ class DefaultAppContainer(
 
     override val workScheduler: AppWorkScheduler by lazy {
         AppWorkScheduler(WorkManager.getInstance(context))
+    }
+
+    override val dataExporter: DataExporter by lazy {
+        DataExporter(
+            context = context.applicationContext,
+            medicationRepository = medicationRepository,
+            medicationLogRepository = medicationLogRepository,
+            healthRecordRepository = healthRecordRepository
+        )
     }
 }

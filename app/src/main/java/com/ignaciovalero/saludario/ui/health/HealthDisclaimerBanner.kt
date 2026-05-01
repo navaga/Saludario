@@ -34,7 +34,10 @@ fun HealthDisclaimerBanner(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
-            Icon(imageVector = Icons.Outlined.Info, contentDescription = null)
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = stringResource(R.string.health_disclaimer_icon_cd)
+            )
             Text(
                 text = stringResource(R.string.health_disclaimer),
                 style = MaterialTheme.typography.bodySmall

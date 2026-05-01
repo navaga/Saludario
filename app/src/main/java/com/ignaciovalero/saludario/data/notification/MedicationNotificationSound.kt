@@ -36,31 +36,31 @@ enum class MedicationNotificationSound(
     ),
     SILOFONO(
         storageKey = "silofono",
-        channelId = "medication_reminders_silofono",
+        channelId = "medication_reminders_silofono_v2",
         displayNameRes = R.string.medication_sound_silofono,
         rawResourceName = "notification_silofono"
     ),
     TIMBRE(
         storageKey = "timbre",
-        channelId = "medication_reminders_timbre",
+        channelId = "medication_reminders_timbre_v2",
         displayNameRes = R.string.medication_sound_timbre,
         rawResourceName = "notification_timbre"
     ),
     ESTRELLAS(
         storageKey = "estrellas",
-        channelId = "medication_reminders_estrellas",
+        channelId = "medication_reminders_estrellas_v2",
         displayNameRes = R.string.medication_sound_estrellas,
         rawResourceName = "notification_estrellas"
     ),
     CAMPANAS(
         storageKey = "campanas",
-        channelId = "medication_reminders_campanas",
+        channelId = "medication_reminders_campanas_v2",
         displayNameRes = R.string.medication_sound_campanas,
         rawResourceName = "notification_campanas"
     ),
     UNIVERSO(
         storageKey = "universo",
-        channelId = "medication_reminders_universo",
+        channelId = "medication_reminders_universo_v2",
         displayNameRes = R.string.medication_sound_universo,
         rawResourceName = "notification_universo"
     );

@@ -10,6 +10,9 @@ class HealthRecordRepositoryImpl(
     private val healthRecordDao: HealthRecordDao
 ) : HealthRecordRepository {
 
+    override fun observeAll(): Flow<List<HealthRecord>> =
+        healthRecordDao.observeAll()
+
     override fun observeByType(type: HealthRecordType): Flow<List<HealthRecord>> =
         healthRecordDao.observeByType(type)
 

@@ -33,6 +33,13 @@
     <string name="settings_replay_onboarding_description">Show the initial app tour, the medical notice and permission steps again.</string>
     <string name="settings_replay_onboarding_action">Replay welcome tour</string>
     <string name="settings_replay_onboarding_done">It will appear when you go back to the main screen.</string>
+    <string name="settings_export_title">Export my data</string>
+    <string name="settings_export_description">Generate a ZIP file with your medications, doses and health records (CSV format) ready to share with your doctor or caregiver.</string>
+    <string name="settings_export_action">Export and share</string>
+    <string name="settings_export_in_progress">Generating file…</string>
+    <string name="settings_export_share_title">Share my Saludario data</string>
+    <string name="settings_export_share_subject">My Saludario data</string>
+    <string name="settings_export_error">The export could not be generated. Please try again.</string>
     <string name="settings_privacy_title">Privacy policy</string>
     <string name="settings_privacy_description">Review inside the app how data and notifications are handled.</string>
     <string name="settings_open_privacy_policy">View privacy policy</string>
@@ -125,6 +132,7 @@
     <string name="health_error_oxygen_max_100">Oxygen saturation cannot exceed 100%</string>
     <string name="health_error_value_out_of_range">Value out of plausible range (%1$s–%2$s)</string>
     <string name="health_disclaimer">Personal tracking data only. Saludario is not a medical device and is not a substitute for professional advice. Consult a healthcare provider if you have concerns or symptoms.</string>
+    <string name="health_disclaimer_icon_cd">Important information</string>
     <string name="health_zone_orientative_note">Indicative ranges; may vary by person and context.</string>
     <string name="health_zone_low">Low</string>
     <string name="health_zone_normal">Normal</string>

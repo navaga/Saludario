@@ -7,17 +7,21 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.ignaciovalero.saludario.SaludarioApplication
+import com.ignaciovalero.saludario.core.export.DataExporter
 import com.ignaciovalero.saludario.core.localization.AppLanguageManager
+import com.ignaciovalero.saludario.core.logging.ErrorReporter
 import com.ignaciovalero.saludario.data.ads.AdConsentStatus
 import com.ignaciovalero.saludario.data.notification.MedicationNotificationSound
 import com.ignaciovalero.saludario.data.preferences.UserPreferencesDataSource
 import com.ignaciovalero.saludario.R
 import com.ignaciovalero.saludario.ui.tutorial.TutorialManager
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -34,11 +38,18 @@ data class SettingsUiState(
 
 class SettingsViewModel(
     private val tutorialManager: TutorialManager,
-    private val userPreferencesDataSource: UserPreferencesDataSource
+    private val userPreferencesDataSource: UserPreferencesDataSource,
+    private val dataExporter: DataExporter
 ) : ViewModel() {
 
     private val _events = MutableSharedFlow<Int>()
     val events: SharedFlow<Int> = _events.asSharedFlow()
+
+    private val _exportEvents = MutableSharedFlow<SettingsExportEvent>()
+    val exportEvents: SharedFlow<SettingsExportEvent> = _exportEvents.asSharedFlow()
+
+    private val _isExporting = MutableStateFlow(false)
+    val isExporting: StateFlow<Boolean> = _isExporting.asStateFlow()
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(
             userPreferencesDataSource.preferredLanguageCode,
@@ -106,13 +117,37 @@ class SettingsViewModel(
         }
     }
 
+    /**
+     * Genera un ZIP con los CSVs (medicamentos, tomas, salud) y lo emite
+     * como evento para que la UI lance el Intent de compartir. Bloquea
+     * exportaciones concurrentes con [isExporting].
+     */
+    fun exportData() {
+        if (_isExporting.value) return
+        _isExporting.value = true
+        viewModelScope.launch {
+            try {
+                val result = dataExporter.exportToZip()
+                _exportEvents.emit(SettingsExportEvent.Ready(result.shareUri.toString()))
+            } catch (e: Exception) {
+                ErrorReporter.report(TAG, "Error generando exportación de datos", e)
+                _events.emit(R.string.settings_export_error)
+            } finally {
+                _isExporting.value = false
+            }
+        }
+    }
+
     companion object {
+        private const val TAG = "SettingsVM"
+
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[APPLICATION_KEY] as SaludarioApplication
                 SettingsViewModel(
                     tutorialManager = TutorialManager(app.container.userPreferencesDataSource),
-                    userPreferencesDataSource = app.container.userPreferencesDataSource
+                    userPreferencesDataSource = app.container.userPreferencesDataSource,
+                    dataExporter = app.container.dataExporter
                 )
             }
         }

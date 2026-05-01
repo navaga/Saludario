@@ -1,0 +1,7 @@
+- Exporta tus datos a CSV/ZIP desde Ajustes y compártelos con tu médico.
+- Calendario mensual más claro, con marcadores por día.
+- Widgets "Siguiente toma" y "Hoy" más legibles y al día.
+- UX más cuidada en Hoy, Insights y Salud (jerarquía y contraste).
+- Accesibilidad: zonas táctiles más grandes y mejor TalkBack.
+- Más estabilidad al iniciar y al recibir notificaciones.
+- Pluralización y formato numérico por idioma.

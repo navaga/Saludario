@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -392,15 +393,25 @@ private fun LegalPage(
             shape = RoundedCornerShape(14.dp),
             color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
+            // El Row padre se hace toggleable con role = Checkbox para que
+            // TalkBack anuncie el texto legal como label del checkbox y
+            // permita activar la casilla pulsando en cualquier parte de la
+            // fila. El Checkbox interno recibe onCheckedChange = null según
+            // el patrón recomendado por Material.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .toggleable(
+                        value = accepted,
+                        role = Role.Checkbox,
+                        onValueChange = onAcceptedChange
+                    )
                     .padding(AppSpacing.md),
                 verticalAlignment = Alignment.Top
             ) {
                 Checkbox(
                     checked = accepted,
-                    onCheckedChange = onAcceptedChange
+                    onCheckedChange = null
                 )
                 Text(
                     text = stringResource(R.string.onboarding_legal_checkbox),
@@ -763,18 +774,27 @@ private fun IndicatorDot(
     contentDescription: String,
     onClick: () -> Unit
 ) {
+    // Envolvemos el dot en un cuadrado de 48dp para cumplir el mínimo de
+    // área táctil accesible (Material guidelines / WCAG 2.5.5) sin alterar
+    // el aspecto visual del indicador (10dp de alto).
     Box(
         modifier = Modifier
-            .width(if (active) 28.dp else 10.dp)
-            .height(10.dp)
+            .size(48.dp)
             .semantics {
                 this.contentDescription = contentDescription
                 role = Role.Button
             }
-            .clickable(onClick = onClick)
-            .background(
-                color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(999.dp)
-            )
-    )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .width(if (active) 28.dp else 10.dp)
+                .height(10.dp)
+                .background(
+                    color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(999.dp)
+                )
+        )
+    }
 }

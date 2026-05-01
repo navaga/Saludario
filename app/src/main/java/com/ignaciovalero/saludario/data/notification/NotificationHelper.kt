@@ -39,8 +39,34 @@ object NotificationHelper {
      * el sonido de un canal es inmutable tras crearlo: el usuario cambia de
      * sonido eligiendo otro canal, no editando uno existente.
      */
+    /**
+     * IDs de canales antiguos (versión 1.x) que apuntaban a sonidos como
+     * `android.resource://...`. En MIUI/HyperOS estos canales reproducen
+     * siempre el sonido por defecto del sistema, por lo que se sustituyen
+     * por canales `_v2` que apuntan a un URI de [MediaStore.Audio.Media].
+     * Mantenemos esta lista para borrarlos en updates.
+     */
+    private val LEGACY_CHANNEL_IDS = listOf(
+        "medication_reminders_silofono",
+        "medication_reminders_timbre",
+        "medication_reminders_estrellas",
+        "medication_reminders_campanas",
+        "medication_reminders_universo"
+    )
+
     fun createNotificationChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
+
+        // Asegura que los MP3 estén instalados como sonidos reales del
+        // sistema antes de registrar los canales (necesario para Xiaomi).
+        NotificationSoundInstaller.installAll(context)
+
+        // Limpia los canales antiguos para que no aparezcan duplicados en
+        // ajustes y para que el usuario no siga usando los rotos.
+        LEGACY_CHANNEL_IDS.forEach { legacyId ->
+            runCatching { manager.deleteNotificationChannel(legacyId) }
+        }
+
         val channelName = context.getString(R.string.notification_channel_name)
         val channelDescription = context.getString(R.string.notification_channel_description)
 
@@ -69,7 +95,12 @@ object NotificationHelper {
                 if (sound != MedicationNotificationSound.SYSTEM) {
                     val resId = sound.rawResId(context)
                     if (resId != 0) {
-                        setSound(sound.soundUri(context), audioAttributes)
+                        // Prioriza el URI del MediaStore (compatible con
+                        // OEMs como MIUI). Si la instalación falló, cae al
+                        // URI `android.resource://` del raw del APK.
+                        val uri = NotificationSoundInstaller.installedUri(context, sound)
+                            ?: sound.soundUri(context)
+                        setSound(uri, audioAttributes)
                     }
                 }
             }
